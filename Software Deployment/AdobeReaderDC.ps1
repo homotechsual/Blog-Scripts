@@ -8,6 +8,8 @@
         2021-09-30: Initial version
     .LINK
         Inspired by code from https://cyberdrain.com, https://gavsto.com and https://mspp.io.
+    .LINK
+        Blog post: https://homotechsual.dev/2021/09/30/Packaging-latest-Adobe-Reader-DC-IntuneWin-file/
 #>
 [CmdletBinding()]
 param (

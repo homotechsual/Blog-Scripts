@@ -6,6 +6,8 @@
     .NOTES
         2023-03-25: Changed the script to use parameter input instead of statically assigning variables.
         2021-11-25: Initial version
+    .LINK
+        Blog post: https://homotechsual.dev/2021/11/25/Pushing-web-tab-Customers-Teams-environment/
 #>
 [CmdletBinding()]
 param(

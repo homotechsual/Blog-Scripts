@@ -8,6 +8,8 @@
         2021-09-09: Initial version
     .LINK
         Original Source: https://www.cyberdrain.com/monitoring-with-powershell-monitoring-onedrive-status-for-current-logged-on-user/
+    .LINK
+        Blog post: https://homotechsual.dev/2021/09/09/Monitoring-OneDrive-PowerShell-CyberDrain-NinjaOne/
 #>
 $Source = @"
 using System;  
