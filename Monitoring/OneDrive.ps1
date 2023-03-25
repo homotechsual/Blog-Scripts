@@ -1,3 +1,14 @@
+<#
+    .SYNOPSIS
+        OneDrive sync status monitoring script
+    .DESCRIPTION
+        This script will monitor the OneDrive sync status and report back to the console. It will also report back to the console if the OneDrive sync client is not running or if no user is logged in.
+    .NOTES
+        2023-03-25: Updated to use the release version of the DLL which works on 22H2.
+        2021-09-09: Initial version
+    .LINK
+        Original Source: https://www.cyberdrain.com/monitoring-with-powershell-monitoring-onedrive-status-for-current-logged-on-user/
+#>
 $Source = @"
 using System;  
 using System.Runtime.InteropServices;

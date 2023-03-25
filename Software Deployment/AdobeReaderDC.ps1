@@ -1,6 +1,17 @@
+<#
+    .SYNOPSIS
+        Adobe Acrobat Reader DC IntuneWin Packager
+    .DESCRIPTION
+        Downloads the latest version of Adobe Acrobat Reader DC, in the language specified, supporting the architecture specified and creates an IntuneWin package.
+    .NOTES
+        2023-03-25: Remove unused parameter.
+        2021-09-30: Initial version
+    .LINK
+        Inspired by code from https://cyberdrain.com, https://gavsto.com and https://mspp.io.
+#>
 [CmdletBinding()]
 param (
-    [Parameter()]
+    # The language of the Adobe Acrobat Reader DC installer to download.
     [ValidateSet(
         'Basque',
         'Chinese (Simplified)',
@@ -32,15 +43,18 @@ param (
         'Ukrainian'
     )]
     [String]$Language = 'English (UK)',
+    # The architecture of the Adobe Acrobat Reader DC installer to download.
     [ValidateSet(
         'x64',
         'x86'
     )]
     [String]$Architechture = 'x64',
+    # The path to save the Adobe Acrobat Reader DC installer to.
     [String]$InstallerSavePath,
+    # The path to the Win32ContentPrepTool.exe file.
     [String]$Win32ContentPrepToolPath,
-    [String]$PackageOutputPath,
-    [Switch]$CreatePackageOnly
+    # The path to save the IntuneWin package to.
+    [String]$PackageOutputPath
 )
 if (-not ('System.Web.HTTPUtility' -as [Type])) {
     Add-Type -AssemblyName System.Web
@@ -131,14 +145,7 @@ if ($PackageOutputPathExists -and (-not(Test-Path $PackageOutputFile))) {
     Write-Host "Package is located in $PackageOutputFile"
     Write-Host "To install silently with auto updates enabled use $AdobeReaderInstallParameters"
     Write-Host '-------------------------------------------------------------------------------'
+} else {
+  Throw 'IntuneWin package not created.'
 }
 $ProgressPreference = $OriginalProgressPreference
-if (Test-Path $PackageOutputFile) {
-    Write-Host '-------------------------------------------------------------------------------'
-    Write-Host 'Created an IntuneWin package for the latest release of Adobe Reader DC.'
-    Write-Host "Package saved to $PackageOutputFile"
-    Write-Host "To install silently with auto updates enabled use $AdobeReaderInstallParameters"
-    Write-Host '-------------------------------------------------------------------------------'
-} else {
-    Throw 'IntuneWin package not created.'
-}
