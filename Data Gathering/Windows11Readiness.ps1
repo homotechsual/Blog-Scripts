@@ -228,9 +228,9 @@ public class CpuFamily
         $SecureBootSuitable = 'No'
     }
     if ($OSDriveSizeSuitable -eq 'Yes' -and $MemorySizeSuitable -eq 'Yes' -and $CPUSuitable -eq 'Yes' -and $TPMSuitable -eq 'Yes' -and $SecureBootSuitable -eq 'Yes') {
-        Ninja-Property-Set windows11Capable 'Yes' | Out-Null
+        Ninja-Property-Set windows11Capable 1 | Out-Null
     } else {
-        Ninja-Property-Set windows11Capable 'No' | Out-Null
+        Ninja-Property-Set windows11Capable 0 | Out-Null
     }
     $Windows11CheckDetails = @{
         'OSDriveSizeSuitable' = $OSDriveSizeSuitable
