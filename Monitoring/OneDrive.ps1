@@ -1,9 +1,10 @@
 <#
     .SYNOPSIS
-        OneDrive sync status monitoring script
+        Monitoring - Windows - OneDrive Client
     .DESCRIPTION
         This script will monitor the OneDrive sync status and report back to the console. It will also report back to the console if the OneDrive sync client is not running or if no user is logged in.
     .NOTES
+        2023-03-26: Renamed ODStatus variable and adjusted to explicitly script scope it to silence linter warning.
         2023-03-25: Updated to use the release version of the DLL which works on 22H2.
         2021-09-09: Initial version
     .LINK
@@ -11,7 +12,7 @@
     .LINK
         Blog post: https://homotechsual.dev/2021/09/09/Monitoring-OneDrive-PowerShell-CyberDrain-NinjaOne/
 #>
-$Source = @"
+$Source = @'
 using System;  
 using System.Runtime.InteropServices;
 
@@ -278,38 +279,38 @@ namespace murrayju.ProcessExtensions
         }
     }
 }
-"@
+'@
 
 $User = $Null
 $User = Get-CimInstance -ClassName 'Win32_ComputerSystem' | Select-Object -ExpandProperty 'UserName' -ErrorAction Stop
 
 try {
-  if ($User) {
-    New-Item 'C:\ProgramData\Microsoft OneDrive' -ItemType directory -Force -ErrorAction SilentlyContinue | Out-Null
-    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/rodneyviana/ODSyncService/master/Binaries/PowerShell/OneDriveLib.dll' -OutFile 'C:\programdata\Microsoft OneDrive\OneDriveLib.dll'
+    if ($User) {
+        New-Item 'C:\ProgramData\Microsoft OneDrive' -ItemType directory -Force -ErrorAction SilentlyContinue | Out-Null
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/rodneyviana/ODSyncService/master/Binaries/PowerShell/OneDriveLib.dll' -OutFile 'C:\programdata\Microsoft OneDrive\OneDriveLib.dll'
 
-    Add-Type -ReferencedAssemblies 'System', 'System.Runtime.InteropServices' -TypeDefinition $Source -Language CSharp 
-    $scriptblock = {
-        Unblock-File 'C:\ProgramData\Microsoft OneDrive\OneDriveLib.dll'
-        Import-Module 'C:\ProgramData\Microsoft OneDrive\OneDriveLib.dll'
-        $ODStatus = Get-ODStatus | ConvertTo-JSON | Out-File 'C:\ProgramData\Microsoft OneDrive\OneDriveLogging.txt'
-    }
+        Add-Type -ReferencedAssemblies 'System', 'System.Runtime.InteropServices' -TypeDefinition $Source -Language CSharp 
+        $scriptblock = {
+            Unblock-File 'C:\ProgramData\Microsoft OneDrive\OneDriveLib.dll'
+            Import-Module 'C:\ProgramData\Microsoft OneDrive\OneDriveLib.dll'
+            $Script:ODStatuses = Get-ODStatus | ConvertTo-Json | Out-File 'C:\ProgramData\Microsoft OneDrive\OneDriveLogging.txt'
+        }
 
-    [murrayju.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser("C:\Windows\System32\WindowsPowershell\v1.0\Powershell.exe", "-command $($scriptblock)","C:\Windows\System32\WindowsPowershell\v1.0",$false)
-    Start-Sleep 5
-    $ErrorList = @("NotInstalled", "ReadOnly", "Error", "OndemandOrUnknown")
-    $ODStatus = (Get-Content "C:\ProgramData\Microsoft OneDrive\OneDriveLogging.txt" | ConvertFrom-JSON).value
-    foreach ($ODStat in $ODStatus) {
-        if ($ODStat.StatusString -in $ErrorList) { $ODerrors = "$($ODStat.LocalPath) is in state $($ODStat.StatusString)" }
+        [murrayju.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser('C:\Windows\System32\WindowsPowershell\v1.0\Powershell.exe', "-command $($scriptblock)", 'C:\Windows\System32\WindowsPowershell\v1.0', $false)
+        Start-Sleep 5
+        $ErrorList = @('NotInstalled', 'ReadOnly', 'Error', 'OndemandOrUnknown')
+        $ODStatus = (Get-Content 'C:\ProgramData\Microsoft OneDrive\OneDriveLogging.txt' | ConvertFrom-Json).value
+        foreach ($ODStatus in $Script:ODStatuses) {
+            if ($ODStatus.StatusString -in $ErrorList) { $ODerrors = "$($ODStatus.LocalPath) is in state $($ODStatus.StatusString)" }
+        }
+        if (!$ODerrors) {
+            $ODerrors = 'Healthy'
+        }
+        $ODErrors
+    } else {
+        'NoUserLoggedIn'
     }
-    if (!$ODerrors) {
-        $ODerrors = "Healthy"
-    }
-    $ODErrors
-  } else {
-    'NoUserLoggedIn'
-  }
 } catch {
   ('ScriptError: {0}' -f $_)
-  exit 1
+    exit 1
 }
