@@ -1,6 +1,6 @@
 <#
     .SYNOPSIS
-        Adobe Acrobat Reader DC IntuneWin Packager
+        Software Deployment - Intune - Adobe Reader DC
     .DESCRIPTION
         Downloads the latest version of Adobe Acrobat Reader DC, in the language specified, supporting the architecture specified and creates an IntuneWin package.
     .NOTES

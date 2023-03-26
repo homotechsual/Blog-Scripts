@@ -1,6 +1,6 @@
 <#
     .SYNOPSIS
-        Microsoft 365 - Teams - Web Tab for Partners
+        Microsoft 365 - Teams - Web tab for partners
     .DESCRIPTION
         This script will allow you to push a web tab to all your client's partner-managed tenants - it relies on having the same Team name in each tenant or can use the "default" team for each tenant. It needs a SAM application to be created in Azure AD and the application ID and secret to be passed to the script. The application requires Teams.ReadWrite.All permission.
     .NOTES

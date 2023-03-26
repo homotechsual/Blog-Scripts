@@ -2,7 +2,7 @@ using namespace System.Management.Automation
 using namespace System.Runtime.InteropServices
 <#
     .SYNOPSIS
-        Microsoft 365 - Exchange Online - Invoke Exchange Online REST request
+        Microsoft 365 - Exchange Online - Exchange Online REST
     .DESCRIPTION
         This script will execute a scriptblock for each customer tenant for your partner tenant. The scriptblock will be executed in the context of the customer tenant. This script is designed to be used with the Secure Application Model (SAM) and the `Invoke-EORESTDelegated.ps1` script. The `Invoke-EORESTDelegated.ps1` script will authenticate to the partner tenant and then execute this script for each customer tenant. This script will then execute the scriptblock provided in the context of the customer tenant.
     .NOTES

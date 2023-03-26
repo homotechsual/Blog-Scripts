@@ -2,7 +2,7 @@
 #Requires -Version 7
 <#
     .SYNOPSIS
-        NinjaOne - Get duplicate devices
+        NinjaOne API - Get duplicate devices
     .DESCRIPTION
         This script will return a list of duplicate devices in NinjaOne. You can use the `All` parameter to return all devices with duplicates and the `Duplicates` parameter to return only the duplicate devices themselves.
     .NOTES
