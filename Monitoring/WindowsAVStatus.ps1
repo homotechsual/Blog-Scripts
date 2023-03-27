@@ -39,8 +39,8 @@ function Get-WindowsAVStatus {
     $AVProducts = Get-CimInstance @CIMParameters
     [UInt32]$ProductState = $AVProduct.productState
     $Results = foreach ($AVProduct in $AVProducts) {
+        $AVProductJson = $AVProduct | ConvertTo-Json
         Write-Verbose ('Found {0}' -f $AVProduct.DisplayName)
-        Write-Debug ('Raw AVProduct data: {0}' -f $AVProduct | Out-String)
         Write-Debug ('ProductState: {0}' -f $ProductState)
         Write-Debug ('Evaluated signature status: {0}' -f $([SignatureStatus]([UInt32]$ProductState -band [ProductFlags]::SignatureStatus)))
         Write-Debug ('Evaluated product owner: {0}' -f $([ProductOwner]([UInt32]$ProductState -band [ProductFlags]::ProductOwner)))
