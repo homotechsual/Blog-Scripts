@@ -37,8 +37,8 @@ function Get-WindowsAVStatus {
         ErrorAction = 'Stop'
     }
     $AVProducts = Get-CimInstance @CIMParameters
-    [UInt32]$ProductState = $AVProduct.productState
     $Results = foreach ($AVProduct in $AVProducts) {
+        [UInt32]$ProductState = $AVProduct.productState
         Write-Verbose ('Found {0}' -f $AVProduct.DisplayName)
         Write-Debug ('ProductState: {0}' -f $ProductState)
         Write-Debug ('Evaluated signature status: {0}' -f $([SignatureStatus]([UInt32]$ProductState -band [ProductFlags]::SignatureStatus)))
@@ -66,14 +66,6 @@ function Get-WindowsAVStatus {
         }
     }
     # This part is somewhat specific to NinjaOne - feel free to reach out to @homotechsual on MSPs R Us or MSP Geek if you want a hand getting this going for your RMM.
-    Write-Output $Results
     Ninja-Property-Set detailedAVStatus ($Results | ConvertTo-Json)
-    if (@($Results.Enabled -eq $False).Count) {
-        Exit 1
-    } elseif (@($Results.UpToDate -eq $False).Count) {
-        Exit 2
-    } else {
-        Exit 0
-    }
 }
 Get-WindowsAVStatus
