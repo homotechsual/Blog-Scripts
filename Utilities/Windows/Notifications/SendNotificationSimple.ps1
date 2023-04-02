@@ -7,7 +7,7 @@
     .NOTES
         2023-01-17: Initial version
     .LINK
-        Blog post: https://homotechsual.dev/2023/01/10/Updating-Drivers-from-Microsoft-Update/
+        Blog post: https://homotechsual.dev/2023/01/17/Toast-Notifications-Windows-10-and-11/
 #>
 [CmdletBinding()]
 Param(
