@@ -6,6 +6,8 @@
     .NOTES
         2023-02-16: Parameterise the script to allow more control over the target versions
         2022-01-25: Initial version
+    .LINK
+        Blog post: https://homotechsual.dev/2023/02/16/Targeting-Windows-Versions-for-Feature-Updates/
 #>
 [CmdletBinding()]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'RMM script - not useful to implement ShouldProcess')]
