@@ -12,21 +12,6 @@
     .LINK
         Blog post: https://homotechsual.dev/2023/03/17/Monitoring-Time-Drift-PowerShell/
 #>
-# This script will monitor the time drift between the local machine and a reference server.
-# The script accepts the following parameters:
-## ReferenceServer: The NTP or local domain controller to use as a reference for time drift.
-## NumberOfSamples: The number of samples to take.
-## AllowedTimeDrift: The allowed time drift in seconds.
-# The script will return the following:
-## If the time drift is within the allowed time drift, the script will return a message if the -Verbose switch is used.
-## If the time drift is greater than the allowed time drift, the script will throw an error.
-## If the -Debug switch is used, the script will return various raw data.
-
-# Thanks to David Szpunar from the NinjaOne Users Discord for inspiring this one.
-# Thanks to Kevin Holman for the many useful bits of code in his script here: https://kevinholman.com/2017/08/26/monitoring-for-time-drift-in-your-enterprise/
-# Thanks to Scott - CO from the One Mand Band MSP Discord for the idea to add a resync option.
-# Thanks to Chris Taylor (https://christaylor.codes/) for the suggestion to add `| Where-Object { $_ }` to exclude empty lines from the output.
-
 [CmdletBinding()]
 param (
     # The NTP or local domain controller to use as a reference for time drift.
