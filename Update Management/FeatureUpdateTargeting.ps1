@@ -4,6 +4,7 @@
     .DESCRIPTION
         Sets the various registry keys to set the target version for Windows Update. This can be used to keep machines on Windows 10, instead of upgrading to Windows 11 or to target a specific "maximum" feature update version.
     .NOTES
+        2023-04-05: Fix output messages
         2023-02-16: Parameterise the script to allow more control over the target versions
         2022-01-25: Initial version
     .LINK
@@ -62,7 +63,7 @@ function Set-UpdateSettings ([switch]$Unset) {
             Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\' -Name 'TargetReleaseVersion' -Value 1 -Type DWord
             Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\' -Name 'TargetReleaseVersionInfo' -Value $TargetProductVersion
             Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\' -Name 'ProductVersion' -Value $TargetProduct
-            $Message = 'Windows Update is now set to target Windows 10, 21H2.'
+            $Message = ('Windows Update is now set to target {0}, {1}' -f $TargetProduct, $TargetProductVersion)
         } catch {
             Throw $_
         }
