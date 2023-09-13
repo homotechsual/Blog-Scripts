@@ -59,7 +59,7 @@ if ($DSRegOutput.TenantId) {
     exit 1
 }
 # Test intune certificate
-$MDMCert = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object { $_.Issuer -EQ '*CN=Microsoft Intune MDM Device CA' }
+$MDMCert = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object { $_.Issuer -EQ 'CN=Microsoft Intune MDM Device CA' }
 if ($MDMCert) {
     Write-Debug 'Device has an Intune MDM Device CA certificate'
     $IntuneJoined++
