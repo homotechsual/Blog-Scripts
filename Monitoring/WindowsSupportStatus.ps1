@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will monitor the support status of the currently installed Windows OS and report back to NinjaOne.
     .NOTES
+        2023-10-26: Update to new property name in EndOfLife API.
         2023-03-26: Add output to PowerShell console for easier debugging.
         2023-01-23: Update to new property name in EndOfLife API.
         2023-01-13: Update to new property name in EndOfLife API.
@@ -35,15 +36,16 @@ if ($ProductName -like '*Server*') {
 $LifeCycles = Invoke-RestMethod @EoLRequestParams
 $WindowsVersion = [System.Environment]::OSVersion.Version
 $OSVersion = ($WindowsVersion.Major, $WindowsVersion.Minor, $WindowsVersion.Build -Join '.')
-$LifeCycle = $LifeCycles | Where-Object { ($_.latest -eq $OSVersion -or $_.buildId -eq $OSVersion) -and (($_.cycle -like "*$Edition*") -or ($IsServerOS)) }
+$LifeCycle = $LifeCycles | Where-Object { ($_.latest -eq $OSVersion -or $_.buildId -eq $OSVersion) -and (($_.releaseLabel -like "*$Edition*") -or ($IsServerOS)) }
 if ($LifeCycle) {
     Write-Output 'Windows OS support information found from https://endoflife.date'
-    Write-Output "Using Cycle: $($LifeCycle.cycle)"
+    Write-Output "Using release label: $($LifeCycle.releaseLabel)"
+    Write-Output "Using cycle: $($LifeCycle.cycle)"
     Write-Output "Latest version: $($LifeCycle.latest)"
     Write-Output "Latest version release date: $($LifeCycle.releaseDate)"
     Write-Output "Latest version end of support date: $($LifeCycle.support)"
     Write-Output "Latest version end of extended support date: $($LifeCycle.eol)"
-    Write-Output "Installed Product: $ProductName"
+    Write-Output "Installed product: $ProductName"
     Write-Output "Installed version: $OSVersion"
     $OSActiveSupport = ($LifeCycle.support -ge (Get-Date -Format 'yyyy-MM-dd'))
     $OSSecuritySupport = ($LifeCycle.eol -ge (Get-Date -Format 'yyyy-MM-dd'))
