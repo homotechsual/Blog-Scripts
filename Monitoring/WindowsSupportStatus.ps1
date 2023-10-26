@@ -5,6 +5,7 @@
         This script will monitor the support status of the currently installed Windows OS and report back to NinjaOne.
     .NOTES
         2023-10-26: Update to new property name in EndOfLife API.
+        2023-08-02: Update to new property name in EndOfLife API.
         2023-03-26: Add output to PowerShell console for easier debugging.
         2023-01-23: Update to new property name in EndOfLife API.
         2023-01-13: Update to new property name in EndOfLife API.
