@@ -6,6 +6,7 @@
     .DESCRIPTION
         This script will return a list of duplicate devices in NinjaOne. You can use the `All` parameter to return all devices with duplicates and the `Duplicates` parameter to return only the duplicate devices themselves.
     .NOTES
+        2023-11-01: Fix various bugs and tighten device filtering.
         2022-04-12: Initial version
     .LINK
         Blog post: https://homotechsual.dev/2022/04/12/Finding-duplicate-devices-NinjaOne/
@@ -21,7 +22,7 @@ param (
 )
 
 try {
-    $DuplicateDevices = Get-NinjaOneDevices -detailed | Group-Object { $_.system.serialNumber } | Where-Object { $_.count -gt 1 -and ($_.name -ne '$(DEFAULT_STRING)' -and $_.name -ne 'Default string') }
+    $DuplicateDevices = Get-NinjaOneDevices -detailed | Where-Object { $_.id } | Group-Object { $_.system.serialNumber } | Where-Object { ($_.count -gt 1) -and ($_.name -ne '$(DEFAULT_STRING)' -and $_.name -ne 'Default string' -and $_.name -ne $null -and $_.name -ne 'To Be Filled By O.E.M.' -and $_.name -ne 'chassis serial number' -and (![string]::IsNullOrWhiteSpace($_.name))) -and (($_.Group.id | Get-Unique).Count -gt 1)}
     if ($All) {
         $Output = $DuplicateDevices | ForEach-Object { $_ | Select-Object -ExpandProperty group | Sort-Object $_.lastContact }
     } elseif ($Duplicates) {
