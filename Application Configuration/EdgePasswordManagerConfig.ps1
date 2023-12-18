@@ -18,7 +18,7 @@
     .NOTES
         2023-12-17: Initial version.
     .LINK
-        Blog post: https://homotechsual.dev/2023/12/17/browser-password-manager-configuration/
+        Blog post: https://homotechsual.dev/2023/12/18/browser-password-manager-configuration/
 #>
 [CmdletBinding()]
 param(
@@ -56,7 +56,7 @@ function Registry.ShouldBe {
     process {
         do {
             # Make sure the registry value exists.
-            if (!(Get-ItemProperty -Path $Path -Name $Name)) {
+            if (!(Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue)) {
                 Write-Warning ("Registry value '$Name' in path '$Path' does not exist. Setting to '$Value'.")
                 New-ItemProperty -Path $Path -Name $Name -Value $Value -Force | Out-Null
             }
