@@ -11,6 +11,7 @@
 [CmdletBinding()]
 param(
     [System.IO.DirectoryInfo]$TeamsFolder = 'C:\RMM\Teams',
+    [System.IO.FileInfo]$MSIXPath,
     [Switch]$Offline,
     [Switch]$Uninstall
 )
@@ -64,13 +65,15 @@ process {
     $TeamsInstallerFile = Join-Path -Path $TeamsFolder -ChildPath 'TeamsBootstrapper.exe'
     Write-Verbose ('Downloading Teams installer to {0}' -f $TeamsInstallerFile)
     Invoke-WebRequest -Uri $TeamsInstallerDownloadUri -OutFile $TeamsInstallerFile
-    if ($Offline) {
+    if ($Offline -and (-not $MSIXPath) {
         # Download Teams MSIX
         $TeamsMSIXFile = Join-Path -Path $TeamsFolder -ChildPath 'Teams.msixbundle'
         if (-not (Test-Path -Path $TeamsMSIXFile)) {
             Write-Verbose ('Downloading Teams MSIX to {0}' -f $TeamsMSIXFile)
             Invoke-WebRequest -Uri $TeamsMSIXDownloadUri -OutFile $TeamsMSIXFile
         }
+    } elseif ($Offline -and $MSIXPath) {
+        $TeamsMSIXFile = Resolve-Path $MSIXPath
     }
     if ($Offline) {
         # Install Teams MSIX with the bootstrapper
