@@ -4,7 +4,8 @@
     .DESCRIPTION
         Uses the Teams Bootstrapper executable to install New Teams machine-wide. Use the `-Offline` switch to install using the MSIX File. Use `-Uninstall` to remove machine-wide provisioning of New Teams.
     .NOTES
-        2023-01-10: Initial version
+        2024-01-11: Fix incorrect syntax for if condition (thanks Jayrod) and silence progress bar for Invoke-WebRequest.
+        2024-01-10: Initial version
     .LINK
         Blog post: https://homotechsual.dev/2023/01/10/Deploy-New-Teams/
 #>
@@ -16,6 +17,7 @@ param(
     [Switch]$Uninstall
 )
 begin {
+    $ProgressPreference = 'SilentlyContinue'
     # Make sure the folder exists to hold the downloaded files.
     if (-not (Test-Path -Path $TeamsFolder)) {
         New-Item -Path $TeamsFolder -ItemType Directory | Out-Null
@@ -65,7 +67,7 @@ process {
     $TeamsInstallerFile = Join-Path -Path $TeamsFolder -ChildPath 'TeamsBootstrapper.exe'
     Write-Verbose ('Downloading Teams installer to {0}' -f $TeamsInstallerFile)
     Invoke-WebRequest -Uri $TeamsInstallerDownloadUri -OutFile $TeamsInstallerFile
-    if ($Offline -and (-not $MSIXPath) {
+    if ($Offline -and (-not $MSIXPath)) {
         # Download Teams MSIX
         $TeamsMSIXFile = Join-Path -Path $TeamsFolder -ChildPath 'Teams.msixbundle'
         if (-not (Test-Path -Path $TeamsMSIXFile)) {
@@ -96,4 +98,7 @@ process {
     } else {
         Write-Error ('Teams installation failed with error code {0}' -f $OutputObject.ErrorCode)
     }
+}
+end {
+    $ProgressPreference = 'Continue'
 }
