@@ -4,10 +4,11 @@
     .DESCRIPTION
         Uses the Teams Bootstrapper executable to install New Teams machine-wide. Use the `-Offline` switch to install using the MSIX File. Use `-Uninstall` to remove machine-wide provisioning of New Teams.
     .NOTES
+        2024-02-07: I know what bloody year it is thanks to Geckojas...
         2024-01-11: Fix incorrect syntax for if condition (thanks Jayrod) and silence progress bar for Invoke-WebRequest.
         2024-01-10: Initial version
     .LINK
-        Blog post: https://homotechsual.dev/2023/01/10/Deploy-New-Teams/
+        Blog post: https://homotechsual.dev/2024/01/10/Deploy-New-Teams/
 #>
 [CmdletBinding()]
 param(
