@@ -14,7 +14,7 @@
         2022-07-29: File incorrectly contained battery health script.
         2022-02-15: Initial version
     .LINK
-        Blog post: https://homotechsual.dev/2022/10/05/Monitoring-AV-PowerShell/
+        Blog post: https://homotechsual.dev/2022/12/22/NinjaOne-custom-fields-endless-possibilities#windows-os-support-status
 #>
 $TLS12Protocol = [System.Net.SecurityProtocolType]'Tls12'
 [System.Net.ServicePointManager]::SecurityProtocol = $TLS12Protocol
