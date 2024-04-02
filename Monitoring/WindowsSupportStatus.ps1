@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will monitor the support status of the currently installed Windows OS and report back to NinjaOne.
     .NOTES
+        2024-04-02: Handle property names which don't contain the Edition coding.
         2023-10-26: Update to new property name in EndOfLife API.
         2023-08-02: Update to new property name in EndOfLife API.
         2023-03-26: Add output to PowerShell console for easier debugging.
@@ -22,7 +23,9 @@ $EndOfLifeUriServer = 'https://endoflife.date/api/windowsserver.json'
 $EoLRequestParams = @{
     Method = 'GET'
 }
-$ProductName = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName).ProductName
+$NTCurrentVersionRegistry = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+$ProductName = (Get-ItemProperty -Path $NTCurrentVersionRegistry -Name ProductName).ProductName
+$DisplayVersion = (Get-ItemProperty -Path $NTCurrentVersionRegistry -Name DisplayVersion).DisplayVersion
 if ($ProductName -like '*Home' -or $ProductName -like '*Pro') {
     $Edition = '(W)'
 } else {
@@ -37,7 +40,7 @@ if ($ProductName -like '*Server*') {
 $LifeCycles = Invoke-RestMethod @EoLRequestParams
 $WindowsVersion = [System.Environment]::OSVersion.Version
 $OSVersion = ($WindowsVersion.Major, $WindowsVersion.Minor, $WindowsVersion.Build -Join '.')
-$LifeCycle = $LifeCycles | Where-Object { ($_.latest -eq $OSVersion -or $_.buildId -eq $OSVersion) -and (($_.releaseLabel -like "*$Edition*") -or ($IsServerOS)) }
+$LifeCycle = $LifeCycles | Where-Object { ($_.latest -eq $OSVersion -or $_.buildId -eq $OSVersion) -and (($_.releaseLabel -like "*$Edition*") -or ($IsServerOS) -or ($_.releaseLabel -like "$($WindowsVersion.Major) $DisplayVersion")) }
 if ($LifeCycle) {
     Write-Output 'Windows OS support information found from https://endoflife.date'
     Write-Output "Using release label: $($LifeCycle.releaseLabel)"
