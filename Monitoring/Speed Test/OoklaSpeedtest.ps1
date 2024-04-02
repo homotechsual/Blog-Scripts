@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will run a speed test using the OOKLA Speedtest CLI and report back to NinjaOne.
     .NOTES
+        2024-04-02: Fix incorrect parameter types.
         2022-12-31: Initial version
     .LINK
         Blog post: https://homotechsual.dev/2022/12/22/NinjaOne-custom-fields-endless-possibilities/
@@ -18,10 +19,10 @@ param (
     [String]$OoklaSpeedtestEXEPath = 'C:\RMM\Bin\',
     # Do not redownload the Ookla Speedtest CLI executable.
     [Parameter()]
-    [String]$NoUpdate,
+    [Switch]$NoUpdate,
     # Replace the Ookla Speedtest CLI executable with a fresh downloaded copy.
     [Parameter()]
-    [String]$ForceUpdate,
+    [Switch]$ForceUpdate,
     # Switches for the Ookla Speedtest CLI executable. Space separated single string.
     [Parameter()]
     [String]$CLISwitches
