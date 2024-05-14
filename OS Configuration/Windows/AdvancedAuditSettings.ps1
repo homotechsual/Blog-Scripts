@@ -4,7 +4,8 @@
     .DESCRIPTION
         This script will enable advanced audit settings on a Windows device. It will also set the advanced audit settings to log all events for success and failure. This is useful for monitoring user session events.
     .NOTES
-        2024-05-14: Initial version
+        2024-05-14: V1.1 - Use GUIDs for categories and subcategories to ensure compatibility with all Windows languages.
+        2024-05-14: V1.0 - Initial version
     .LINK
         Blog post: Not blogged yet.
 #>
@@ -21,7 +22,7 @@ if (!$AuditPolCommand) {
 }
 $AuditConfigurations = @(
     @{
-        Category = 'Account Logon'
+        Category = '{69979850-797A-11D9-BED3-505054503030}' # Account Logon
         Settings = @(
             @{
                 subcategory = '*'
@@ -31,7 +32,7 @@ $AuditConfigurations = @(
         )
     },
     @{
-        Category = 'Account Management'
+        Category = '{6997984E-797A-11D9-BED3-505054503030}' # Account Management
         Settings = @(
             @{
                 subcategory = '*' 
@@ -41,85 +42,85 @@ $AuditConfigurations = @(
         )
     },
     @{
-        Category = 'Detailed Tracking'
+        Category = '{6997984C-797A-11D9-BED3-505054503030}' # Detailed Tracking
         Settings = @(
             @{
-                subcategory = 'DPAPI Activity'
+                subcategory = '{0CCE922D-69AE-11D9-BED3-505054503030}' # Data Protection API Activity / DPAPI Activity
                 success = 'enable'
                 failure = 'enable'
             },
             @{
-                subcategory = 'Process Creation'
+                subcategory = '{0CCE922B-69AE-11D9-BED3-505054503030}' # Process Creation
                 success = 'enable'
                 failure = 'enable'
             }
         )
     },
     @{
-        Category = 'Logon/Logoff'
+        Category = '{69979849-797A-11D9-BED3-505054503030}' # Logon/Logoff
         Settings = @(
             @{
-                subcategory = 'Account Lockout'
+                subcategory = '{0CCE9217-69AE-11D9-BED3-505054503030}' # Account Lockout
                 success = 'enable'
                 failure = $null
             },
             @{
-                subcategory = 'Logoff'
+                subcategory = '{0CCE9216-69AE-11D9-BED3-505054503030}' # Logoff
                 success = 'enable'
                 failure = $null
             },
             @{
-                subcategory = 'Logon'
+                subcategory = '{0CCE9215-69AE-11D9-BED3-505054503030}' # Logon
                 success = 'enable'
                 failure = 'enable'
             },
             @{
-                subcategory = 'Special Logon'
+                subcategory = '{0CCE921B-69AE-11D9-BED3-505054503030}' # Special Logon
                 success = 'enable'
                 failure = 'enable'
             }
         )
     },
     @{
-        Category = 'Policy Change'
+        Category = '{6997984D-797A-11D9-BED3-505054503030}' # Policy Change
         Settings = @(
             @{
-                subcategory = 'Audit Policy Change'
+                subcategory = '{0CCE922F-69AE-11D9-BED3-505054503030}' # Audit Policy Change
                 success = 'enable'
                 failure = 'enable'
             },
             @{
-                subcategory = 'Authentication Policy Change'
+                subcategory = '{0CCE9230-69AE-11D9-BED3-505054503030}' # Authentication Policy Change
                 success = 'enable'
                 failure = 'enable'
             },
             @{
-                subcategory = 'MPSSVC Rule-Level Policy Change'
+                subcategory = '{0CCE9232-69AE-11D9-BED3-505054503030}' # Windows Firewall with Advanced Security Policy Change / MPSSVC Rule-Level Policy Change
                 success = 'enable'
                 failure = $null
             }
         )
     },
     @{
-        Category = 'System'
+        Category = '{69979848-797A-11D9-BED3-505054503030}' # System
         Settings = @(
             @{
-                subcategory = 'IPsec Driver'
+                subcategory = '{0CCE9213-69AE-11D9-BED3-505054503030}' # IPsec Driver
                 success = 'enable'
                 failure = 'enable'
             },
             @{
-                subcategory = 'Security State Change'
+                subcategory = '{0CCE9210-69AE-11D9-BED3-505054503030}' # Security State Change
                 success = 'enable'
                 failure = 'enable'
             },
             @{
-                subcategory = 'Security System Extension'
+                subcategory = '{0CCE9211-69AE-11D9-BED3-505054503030}' # Security System Extension
                 success = 'enable'
                 failure = 'enable'
             },
             @{
-                subcategory = 'System Integrity'
+                subcategory = '{0CCE9212-69AE-11D9-BED3-505054503030}' # System Integrity
                 success = 'enable'
                 failure = 'enable'
             }

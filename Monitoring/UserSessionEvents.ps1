@@ -8,7 +8,8 @@
 
         The number of days to retrieve events from. Default is 10 days.
     .NOTES
-        2024-05-14: Initial version
+        2024-05-14: V1.1 - Standardise User formatting.
+        2024-05-14: V1.0 - Initial version
     .LINK
         Blog post: Not blogged yet.
 #>
