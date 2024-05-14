@@ -84,16 +84,21 @@ $EventTypeLookup = @{
     4801 = 'Unlock'
 }
 $XMLNameSpace = @{'ns'='http://schemas.microsoft.com/win/2004/08/events/event'}
-$XPathTarget = "//ns:Data[@Name='TargetUserName']"
+$XPathTargetUserSID = "//ns:Data[@Name='TargetUserSid']"
 $XPathUserSID = "//ns:Data[@Name='UserSid']"
 if ($Events) {
     $Results = ForEach($Event in $Events) {
         $XML = $Event.ToXML()
         Switch -Regex ($Event.Id) {
             '4...' {
-                $User = (
-                    Select-XML -Content $XML -Namespace $XMLNameSpace -XPath $XPathTarget
+                $SID = (
+                    Select-XML -Content $XML -Namespace $XMLNameSpace -XPath $XPathTargetUserSID
                 ).Node.'#text'
+                if ($SID) {
+                    $User = [System.Security.Principal.SecurityIdentifier]::new($SID).Translate([System.Security.Principal.NTAccount]).Value
+                } else {
+                    Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID,$Event.Id)
+                }
                 Break            
             }
             '7...' {
