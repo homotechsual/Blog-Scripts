@@ -81,7 +81,7 @@ $EventTypeLookup = @{
     7001 = 'Logon'
     7002 = 'Logoff'
     4800 = 'Lock'
-    4801 = 'UnLock'
+    4801 = 'Unlock'
 }
 $XMLNameSpace = @{'ns'='http://schemas.microsoft.com/win/2004/08/events/event'}
 $XPathTarget = "//ns:Data[@Name='TargetUserName']"
