@@ -8,6 +8,7 @@
 
         The number of days to retrieve events from. Default is 10 days.
     .NOTES
+        2024-04-15: V1.2 - Fix incorrect event ids for logon and logoff events.
         2024-05-14: V1.1 - Standardise User formatting.
         2024-05-14: V1.0 - Initial version
     .LINK
@@ -28,7 +29,7 @@ if ($ENV:NinjaField) {
 }
 function ConvertTo-ObjectToHtmlTable {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [System.Collections.Generic.List[Object]]$Objects
     )
 
@@ -38,15 +39,13 @@ function ConvertTo-ObjectToHtmlTable {
     [void]$sb.Append('<table><thead><tr>')
 
     # Add column headers based on the properties of the first object, excluding "RowColour"
-    $Objects[0].PSObject.Properties.Name |
-        Where-Object { $_ -ne 'RowColour' } |
-        ForEach-Object { [void]$sb.Append("<th>$_</th>") }
+    $Objects[0].PSObject.Properties.Name | Where-Object { $_ -ne 'RowColour' } | ForEach-Object { [void]$sb.Append("<th>$_</th>") }
 
     [void]$sb.Append('</tr></thead><tbody>')
 
     foreach ($obj in $Objects) {
         # Use the RowColour property from the object to set the class for the row
-        $rowClass = if ($obj.RowColour) { $obj.RowColour } else { "" }
+        $rowClass = if ($obj.RowColour) { $obj.RowColour } else { '' }
 
         [void]$sb.Append("<tr class=`"$rowClass`">")
         # Generate table cells, excluding "RowColour"
@@ -63,7 +62,7 @@ function ConvertTo-ObjectToHtmlTable {
 $Events = [System.Collections.Generic.List[Object]]::new()
 $LockUnlockEvents = Get-WinEvent -FilterHashtable @{ 
     LogName = 'Security'
-    Id = @(4800,4801)
+    Id = @(4800, 4801)
     StartTime = (Get-Date).AddDays(-$Days)
 } -ErrorAction SilentlyContinue
 if ($LockUnlockEvents) {
@@ -71,7 +70,7 @@ if ($LockUnlockEvents) {
 }
 $LoginLogoffEvents = Get-WinEvent -FilterHashtable @{ 
     LogName = 'System'
-    Id = @(7001,7002)
+    Id = @(7001, 7002)
     StartTime = (Get-Date).AddDays(-$Days)
     ProviderName = 'Microsoft-Windows-Winlogon' 
 } -ErrorAction SilentlyContinue
@@ -84,32 +83,32 @@ $EventTypeLookup = @{
     4800 = 'Lock'
     4801 = 'Unlock'
 }
-$XMLNameSpace = @{'ns'='http://schemas.microsoft.com/win/2004/08/events/event'}
+$XMLNameSpace = @{'ns' = 'http://schemas.microsoft.com/win/2004/08/events/event' }
 $XPathTargetUserSID = "//ns:Data[@Name='TargetUserSid']"
 $XPathUserSID = "//ns:Data[@Name='UserSid']"
 if ($Events) {
-    $Results = ForEach($Event in $Events) {
+    $Results = ForEach ($Event in $Events) {
         $XML = $Event.ToXML()
         Switch -Regex ($Event.Id) {
             '4...' {
                 $SID = (
-                    Select-XML -Content $XML -Namespace $XMLNameSpace -XPath $XPathTargetUserSID
+                    Select-Xml -Content $XML -Namespace $XMLNameSpace -XPath $XPathTargetUserSID
                 ).Node.'#text'
                 if ($SID) {
                     $User = [System.Security.Principal.SecurityIdentifier]::new($SID).Translate([System.Security.Principal.NTAccount]).Value
                 } else {
-                    Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID,$Event.Id)
+                    Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID, $Event.Id)
                 }
                 Break            
             }
             '7...' {
                 $SID = (
-                    Select-XML -Content $XML -Namespace $XMLNameSpace -XPath $XPathUserSID
+                    Select-Xml -Content $XML -Namespace $XMLNameSpace -XPath $XPathUserSID
                 ).Node.'#text'
                 if ($SID) {
                     $User = [System.Security.Principal.SecurityIdentifier]::new($SID).Translate([System.Security.Principal.NTAccount]).Value
                 } else {
-                    Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID,$Event.Id)
+                    Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID, $Event.Id)
                 }
                 Break
             }

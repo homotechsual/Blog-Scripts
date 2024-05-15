@@ -47,6 +47,9 @@
         'PSUseShouldProcessForStateChangingFunctions'
     )
     Rules = @{
+        PSAlignAssignmentStatement = @{
+            Enable = $false
+        }
         PSPlaceOpenBrace = @{
             Enable = $true
             OnSameLine = $true
