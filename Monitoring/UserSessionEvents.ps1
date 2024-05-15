@@ -71,7 +71,7 @@ if ($LockUnlockEvents) {
 }
 $LoginLogoffEvents = Get-WinEvent -FilterHashtable @{ 
     LogName = 'System'
-    Id = @(7000,7001)
+    Id = @(7001,7002)
     StartTime = (Get-Date).AddDays(-$Days)
     ProviderName = 'Microsoft-Windows-Winlogon' 
 } -ErrorAction SilentlyContinue
