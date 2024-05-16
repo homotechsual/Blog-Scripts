@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will check the current system for Windows 11 readiness. It will check the following: OS Disk Size, Memory Capacity, CPU Clock Speed, CPU Logical Processors, CPU Address Width, CPU Family Type, TPM Version, Secure Boot, and UEFI Firmware.
     .NOTES
+        2024-04-15: Update for changed Windows 11 requirements.
         2023-03-26: Fix incorrect variable comparison bugs. Reformat.
         2022-02-16: Fix bug with Secure Boot suitability check, add i7-7820hq on Surface Studio 2 or Precision 5520 as supported CPU outside of CPU family check.
         2022-02-15: Initial version
@@ -216,11 +217,21 @@ public class CpuFamily
     try {
         $SecureBootEnabled = Confirm-SecureBootUEFI
     } catch [System.PlatformNotSupportedException] {
+        $SecureBootCapable = $False
         $SecureBootEnabled = $False
     } catch [System.UnauthorizedAccessException] {
+        $SecureBootCapable = $null
         $SecureBootEnabled = $False
     } catch {
+        $SecureBootCapable = $null
         $SecureBootEnabled = $False
+    }
+    if ($false -eq $SecureBootEnabled) {
+        $SecureBootPossible = 'No'
+    } elseif ($null -eq $SecureBootCapable) {
+        $SecureBootPossible = 'Unknown'
+    } else {
+        $SecureBootPossible = 'Yes'
     }
     if ($SecureBootEnabled) {
         $SecureBootSuitable = 'Yes'
@@ -241,6 +252,7 @@ public class CpuFamily
         'CPUFamily' = $ProcessorFamily
         'TPMSuitable' = $TPMSuitable
         'SecureBootSuitable' = $SecureBootSuitable
+        'SecureBootPossible' = $SecureBootPossible
     }
     $DetailJson = $Windows11CheckDetails | ConvertTo-Json
     Ninja-Property-Set windows11CheckDetails $DetailJson | Out-Null
