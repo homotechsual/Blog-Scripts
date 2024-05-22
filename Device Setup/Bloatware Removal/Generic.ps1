@@ -108,6 +108,7 @@ $AppsToRemove = @(
     '*Flipboard*',
     '*Twitter*',
     '*Facebook*',
+    '*TikTok*',
     '*MineCraft*',
     '*Royal Revolt*',
     '*Sway*'
