@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will check the current system for Windows 11 readiness. It will check the following: OS Disk Size, Memory Capacity, CPU Clock Speed, CPU Logical Processors, CPU Address Width, CPU Family Type, TPM Version, Secure Boot, and UEFI Firmware.
     .NOTES
+        2024-05-22: Add detailed information on failure. Add TPM enabled check.
         2024-05-22: Add SecureBoot enabled check.
         2024-05-22: Fix SecureBoot possible detection logic.
         2024-05-22: Fix SecureBoot row colour logic.
@@ -223,14 +224,29 @@ public class CpuFamily
     if ($TPM.TpmPresent) {
         $TPMVersion = Get-CimInstance -Class Win32_Tpm -Namespace 'root\CIMV2\Security\MicrosoftTpm' | Select-Object -Property SpecVersion
         $TPMMajorVersion = ($TPMVersion.SpecVersion.Split(',').Trim() | ForEach-Object { [decimal]$_ } | Measure-Object -Maximum).Maximum
-        
         if ($TPMMajorVersion -ge 2) {
             $TPMSuitable = 'Yes'
         } else {
             $TPMSuitable = 'No'
+            $TPMDetail = 'TPM spec version: {0}. Needs to be 2.0 or greater.' -f $TPMMajorVersion
         }
     } else {
         $TPMSuitable = 'No'
+        $TPMDetail = 'No TPM present'
+    }
+    if ($TPM.TpmEnabled -and $TPM.TpmReady -and $TPM.TpmActivated -and $TPM.TPMOwned) {
+        $TPMFullyEnabled = 'Yes'
+    } else {
+        $TPMFullyEnabled = 'No'
+        if (!$TPM.TpmEnabled) {
+            $TPMDetail = 'TPM not enabled'
+        } elseif (!$TPM.TpmReady) {
+            $TPMDetail = 'TPM not ready'
+        } elseif (!$TPM.TpmActivated) {
+            $TPMDetail = 'TPM not activated'
+        } elseif (!$TPM.TPMOwned) {
+            $TPMDetail = 'TPM not owned'
+        }
     }
     $ProcessorInformation = Get-CimInstance -ClassName Win32_Processor | Select-Object -Property [a-z]*
     $ProcessorAddressWidth = $ProcessorInformation.AddressWidth
@@ -258,23 +274,29 @@ public class CpuFamily
         $CPUSuitable = 'Yes'
     } else {
         $CPUSuitable = 'No'
+        $CPUDetail = $CPUFamilyResult.Message
     }
     try {
         $SecureBootEnabled = Confirm-SecureBootUEFI
     } catch [System.PlatformNotSupportedException] {
         $SecureBootCapable = $False
         $SecureBootEnabled = $False
+        $SecureBootDetail = 'Secure Boot not supported'
     } catch [System.UnauthorizedAccessException] {
         $SecureBootCapable = $null
         $SecureBootEnabled = $False
+        $SecureBootDetail = 'Unauthorized access'
     } catch {
         $SecureBootCapable = $null
         $SecureBootEnabled = $False
+        $SecureBootDetail = 'Unknown Error'
     }
     if ($false -eq $SecureBootEnabled) {
         $SecureBootPossible = 'No'
+        $SecureBootDetail = 'Secure Boot likely Disabled in BIOS'
     } elseif ($null -eq $SecureBootEnabled) {
         $SecureBootPossible = 'Unknown'
+        $SecureBootDetail = 'Secure Boot status unknown'
     } else {
         $SecureBootPossible = 'Yes'
     }
@@ -296,6 +318,7 @@ public class CpuFamily
     $CPUFamilyRow = [PSCustomObject]@{
         'Check'     = 'CPUFamily'
         'Result'    = $ProcessorFamily
+        'Detail'    = $CPUDetail
         'RowColour' = if ($CPUSuitable -eq 'Yes') { 'success' }else { 'danger' }
     }
     $Win11ReadinessResults.Add($CPUFamilyRow)
@@ -303,6 +326,7 @@ public class CpuFamily
     $CPUSuitableRow = [PSCustomObject]@{
         'Check'     = 'CPUSuitable'
         'Result'    = $CPUSuitable
+        'Detail'    = $CPUDetail
         'RowColour' = if ($CPUSuitable -eq 'Yes') { 'success' }else { 'danger' }
     }
     $Win11ReadinessResults.Add($CPUSuitableRow)
@@ -310,6 +334,7 @@ public class CpuFamily
     $MemorySizeRow = [PSCustomObject]@{
         'Check'     = 'MemorySizeGB'
         'Result'    = $MemorySize.SizeGB
+        'Detail'    = $null
         'RowColour' = if ($MemorySizeSuitable -eq 'Yes') { 'success' }else { 'danger' }
 
     }
@@ -318,6 +343,7 @@ public class CpuFamily
     $MemorySizeSuitableRow = [PSCustomObject]@{
         'Check'     = 'MemorySizeSuitable'
         'Result'    = $MemorySizeSuitable
+        'Detail'    = $null
         'RowColour' = if ($MemorySizeSuitable -eq 'Yes') { 'success' }else { 'danger' }
     }
     $Win11ReadinessResults.Add($MemorySizeSuitableRow)
@@ -325,6 +351,7 @@ public class CpuFamily
     $OSDriveSizeRow = [PSCustomObject]@{
         'Check'     = 'OSDriveSizeGB'
         'Result'    = $OSDriveSize.SizeGB
+        'Detail'    = $null
         'RowColour' = if ($OSDriveSizeSuitable -eq 'Yes') { 'success' } else { 'danger' }
     }
     $Win11ReadinessResults.Add($OSDriveSizeRow)
@@ -332,27 +359,39 @@ public class CpuFamily
     $OSDriveSizeSuitableRow = [PSCustomObject]@{
         'Check'     = 'OSDriveSizeSuitable'
         'Result'    = $OSDriveSizeSuitable
+        'Detail'    = $null
         'RowColour' = if ($OSDriveSizeSuitable -eq 'Yes') { 'success' } else { 'danger' }
     }
     $Win11ReadinessResults.Add($OSDriveSizeSuitableRow)
 
     $TPMVerRow = [PSCustomObject]@{
-        'Check'     = 'TPM Versions'
+        'Check'     = 'TPMSpecVersions'
         'Result'    = $TPMVersion.SpecVersion
+        'Detail'    = $TPMDetail
         'RowColour' = if ($TPMSuitable -eq 'Yes') { 'success' } else { 'danger' }
     }
     $Win11ReadinessResults.Add($TPMVerRow)
-
+    
     $TPMSuitableRow = [PSCustomObject]@{
         'Check'     = 'TPMSuitable'
         'Result'    = $TPMSuitable
+        'Detail'    = $TPMDetail
         'RowColour' = if ($TPMSuitable -eq 'Yes') { 'success' } else { 'danger' }
     }
     $Win11ReadinessResults.Add($TPMSuitableRow)
 
+    $TPMFullyEnabledRow = [PSCustomObject]@{
+        'Check'     = 'TPMFullyEnabled'
+        'Result'    = $TPMFullyEnabled
+        'Detail'    = $TPMDetail
+        'RowColour' = if ($TPMFullyEnabled -eq 'Yes') { 'success' } else { 'danger' }
+    }
+    $Win11ReadinessResults.Add($TPMFullyEnabledRow)
+
     $SecureBootEnabledRow = [PSCustomObject]@{
         'Check'     = 'SecureBootEnabled'
         'Result'    = $SecureBootEnabled
+        'Detail'    = $SecureBootDetail
         'RowColour' = if ($SecureBootEnabled -eq 'Yes') { 'success' } else { 'danger' }
     }
     $Win11ReadinessResults.Add($SecureBootEnabledRow)
@@ -360,6 +399,7 @@ public class CpuFamily
     $SecureBootSuitableRow = [PSCustomObject]@{
         'Check'     = 'SecureBootSuitable'
         'Result'    = $SecureBootSuitable
+        'Detail'    = $SecureBootDetail
         'RowColour' = if ($SecureBootSuitable -eq 'Yes') { 'success' } else { 'danger' }
     }
     $Win11ReadinessResults.Add($SecureBootSuitableRow)
@@ -367,6 +407,7 @@ public class CpuFamily
     $SecureBootPossibleRow = [PSCustomObject]@{
         'Check'     = 'SecureBootPossible'
         'Result'    = $SecureBootPossible
+        'Detail'    = $SecureBootDetail
         'RowColour' = if ($SecureBootPossible -eq 'Yes') { 'success' } else { 'danger' }
     }
     $Win11ReadinessResults.Add($SecureBootPossibleRow)
