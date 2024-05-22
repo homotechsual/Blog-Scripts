@@ -116,5 +116,5 @@ $AppsToRemove = @(
 foreach ($App in $AppsToRemove) {
     Get-AppxPackage -AllUsers | Where-Object { $_.Name -like $App } | Remove-AppxPackage -ErrorAction SilentlyContinue
     Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like $App } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
-    Write-OutPut ('Removing app: {0}' -f $App)
+    Write-Output ('Removing app: {0}' -f $App)
 }
