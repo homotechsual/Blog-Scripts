@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will check the current system for Windows 11 readiness. It will check the following: OS Disk Size, Memory Capacity, CPU Clock Speed, CPU Logical Processors, CPU Address Width, CPU Family Type, TPM Version, Secure Boot, and UEFI Firmware.
     .NOTES
+        2024-05-22: Fix SecureBoot possible detection logic.
         2024-05-22: Fix SecureBoot row colour logic.
         2024-05-22: Add table conversion function to convert results to HTML table for Ninja WYSIWYG field. Fix TPM version check to use maximum version. Thanks to Fly Kick and Mark aka AIVenom aka NinjaOne's Technical Product Manager for Scripting for the feedback, suggestions and code corrections / improvements. Thanks to Skolte for the table conversion function.
         2024-04-15: Update for changed Windows 11 requirements.
@@ -271,7 +272,7 @@ public class CpuFamily
     }
     if ($false -eq $SecureBootEnabled) {
         $SecureBootPossible = 'No'
-    } elseif ($null -eq $SecureBootCapable) {
+    } elseif ($null -eq $SecureBootEnabled) {
         $SecureBootPossible = 'Unknown'
     } else {
         $SecureBootPossible = 'Yes'
