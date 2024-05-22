@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will check the current system for Windows 11 readiness. It will check the following: OS Disk Size, Memory Capacity, CPU Clock Speed, CPU Logical Processors, CPU Address Width, CPU Family Type, TPM Version, Secure Boot, and UEFI Firmware.
     .NOTES
+        2024-05-22: Add SecureBoot enabled check.
         2024-05-22: Fix SecureBoot possible detection logic.
         2024-05-22: Fix SecureBoot row colour logic.
         2024-05-22: Add table conversion function to convert results to HTML table for Ninja WYSIWYG field. Fix TPM version check to use maximum version. Thanks to Fly Kick and Mark aka AIVenom aka NinjaOne's Technical Product Manager for Scripting for the feedback, suggestions and code corrections / improvements. Thanks to Skolte for the table conversion function.
@@ -279,8 +280,10 @@ public class CpuFamily
     }
     if ($SecureBootEnabled) {
         $SecureBootSuitable = 'Yes'
+        $SecureBootEnabled = 'Yes'
     } else {
         $SecureBootSuitable = 'No'
+        $SecureBootEnabled = 'No'
     }
     if ($OSDriveSizeSuitable -eq 'Yes' -and $MemorySizeSuitable -eq 'Yes' -and $CPUSuitable -eq 'Yes' -and $TPMSuitable -eq 'Yes' -and $SecureBootSuitable -eq 'Yes') {
         Ninja-Property-Set windows11Capable 1 | Out-Null
@@ -346,6 +349,13 @@ public class CpuFamily
         'RowColour' = if ($TPMSuitable -eq 'Yes') { 'success' } else { 'danger' }
     }
     $Win11ReadinessResults.Add($TPMSuitableRow)
+
+    $SecureBootEnabledRow = [PSCustomObject]@{
+        'Check'     = 'SecureBootEnabled'
+        'Result'    = $SecureBootEnabled
+        'RowColour' = if ($SecureBootEnabled -eq 'Yes') { 'success' } else { 'danger' }
+    }
+    $Win11ReadinessResults.Add($SecureBootEnabledRow)
 
     $SecureBootSuitableRow = [PSCustomObject]@{
         'Check'     = 'SecureBootSuitable'
