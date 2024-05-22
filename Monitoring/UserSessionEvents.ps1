@@ -8,6 +8,7 @@
 
         The number of days to retrieve events from. Default is 10 days.
     .NOTES
+        2024-05-22: V1.3 - Add warning if output is over the NinjaOne WYSIWYG field limit of 200,000 characters. Handle errors when parsing SIDs.
         2024-04-15: V1.2 - Fix incorrect event ids for logon and logoff events.
         2024-05-14: V1.1 - Standardise User formatting.
         2024-05-14: V1.0 - Initial version
@@ -32,21 +33,15 @@ function ConvertTo-ObjectToHtmlTable {
         [Parameter(Mandatory = $true)]
         [System.Collections.Generic.List[Object]]$Objects
     )
-
     $sb = New-Object System.Text.StringBuilder
-
     # Start the HTML table
     [void]$sb.Append('<table><thead><tr>')
-
     # Add column headers based on the properties of the first object, excluding "RowColour"
     $Objects[0].PSObject.Properties.Name | Where-Object { $_ -ne 'RowColour' } | ForEach-Object { [void]$sb.Append("<th>$_</th>") }
-
     [void]$sb.Append('</tr></thead><tbody>')
-
     foreach ($obj in $Objects) {
         # Use the RowColour property from the object to set the class for the row
         $rowClass = if ($obj.RowColour) { $obj.RowColour } else { '' }
-
         [void]$sb.Append("<tr class=`"$rowClass`">")
         # Generate table cells, excluding "RowColour"
         foreach ($propName in $obj.PSObject.Properties.Name | Where-Object { $_ -ne 'RowColour' }) {
@@ -54,9 +49,11 @@ function ConvertTo-ObjectToHtmlTable {
         }
         [void]$sb.Append('</tr>')
     }
-
     [void]$sb.Append('</tbody></table>')
-
+    $OutputLength = $sb.ToString() | Measure-Object -Character -IgnoreWhiteSpace | Select-Object -ExpandProperty Characters
+    if ($OutputLength -gt 200000) {
+        Write-Warning ('Output appears to be over the NinjaOne WYSIWYG field limit of 200,000 characters. Actual length was: {0}' -f $OutputLength)
+    }
     return $sb.ToString()
 }
 $Events = [System.Collections.Generic.List[Object]]::new()
@@ -106,7 +103,12 @@ if ($Events) {
                     Select-Xml -Content $XML -Namespace $XMLNameSpace -XPath $XPathUserSID
                 ).Node.'#text'
                 if ($SID) {
-                    $User = [System.Security.Principal.SecurityIdentifier]::new($SID).Translate([System.Security.Principal.NTAccount]).Value
+                    try {
+                        $User = [System.Security.Principal.SecurityIdentifier]::new($SID).Translate([System.Security.Principal.NTAccount]).Value
+                    } catch {
+                        Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID, $Event.Id)
+                        $User = $SID
+                    }
                 } else {
                     Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID, $Event.Id)
                 }
