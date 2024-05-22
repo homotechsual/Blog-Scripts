@@ -15,7 +15,6 @@
         Blog post: https://homotechsual.dev/2022/12/22/NinjaOne-custom-fields-endless-possibilities/
 #>
 
-
 ## Custom Function To Convert Results To Table So We Can Use Ninja WYSIWYG Field
 function ConvertTo-ObjectToHtmlTable {
     param (
