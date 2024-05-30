@@ -7,7 +7,25 @@
         [System.Int32]
 
         The number of days to retrieve events from. Default is 10 days.
+    .PARAMETER NinjaField
+        [System.String]
+
+        The NinjaOne custom field to use to store the table.
+    .PARAMETER Mode
+        [System.String]
+
+        The mode to use when filtering SIDs or usernames. Options are `Include` or `Exclude`. Default is `Include`.
+    .PARAMETER SIDs
+        [System.Collections.Generic.List[System.String]]
+
+        A list of SIDs to include or exclude from the output. If not specified, all SIDs will be included. If specified, the SIDs specified will be included or excluded depending whether the `Mode` parameter is set to `Include` or `Exclude`.
+    .PARAMETER UserNames
+        [System.Collections.Generic.List[System.String]]
+
+        A list of user names to include or exclude from the output. If not specified, all user names will be included. If specified, the user names specified will be included or excluded depending whether the `Mode` parameter is set to `Include` or `Exclude`.
+    .PARAMETER 
     .NOTES
+        2024-05-23: V1.4 - Add support for filtering SIDs or usernames.
         2024-05-22: V1.3 - Add warning if output is over the NinjaOne WYSIWYG field limit of 200,000 characters. Handle errors when parsing SIDs.
         2024-04-15: V1.2 - Fix incorrect event ids for logon and logoff events.
         2024-05-14: V1.1 - Standardise User formatting.
@@ -20,13 +38,30 @@ param (
     # The number of days to retrieve events from. Default is 10 days.
     [int]$Days = 10,
     # The NinjaOne custom field to use to store the table.
-    [string]$NinjaField = 'UserSessionEvents'
+    [string]$NinjaField = 'UserSessionEvents',
+    # The mode to use when filtering SIDs or usernames. Options are `Include` or `Exclude`. Default is `Include`.
+    [ValidateSet('Include', 'Exclude')]
+    [string]$Mode = 'Include',
+    # A list of SIDs to include or exclude from the output. If not specified, all SIDs will be included. If specified, the SIDs specified will be included or excluded depending whether the `Mode` parameter is set to `Include` or `Exclude`.
+    [System.Collections.Generic.List[System.String]]$SIDs,
+    # A list of user names to include or exclude from the output. If not specified, all user names will be included. If specified, the user names specified will be included or excluded depending whether the `Mode` parameter is set to `Include` or `Exclude`.
+    [System.Collections.Generic.List[System.String]]$UserNames
 )
+# Set parameters from environment variables if they exist
 if ($ENV:Days) {
     $Days = [int]::Parse($ENV:Days)
 }
 if ($ENV:NinjaField) {
     $NinjaField = $ENV:NinjaField
+}
+if ($ENV:Mode) {
+    $Mode = $ENV:Mode
+}
+if ($ENV:SIDs) {
+    [System.Collections.Generic.List[System.String]]$SIDs = $ENV:SIDs -split ','
+}
+if ($ENV:UserNames) {
+    [System.Collections.Generic.List[System.String]]$UserNames = $ENV:UserNames -split ','
 }
 function ConvertTo-ObjectToHtmlTable {
     param (
@@ -92,7 +127,30 @@ if ($Events) {
                     Select-Xml -Content $XML -Namespace $XMLNameSpace -XPath $XPathTargetUserSID
                 ).Node.'#text'
                 if ($SID) {
-                    $User = [System.Security.Principal.SecurityIdentifier]::new($SID).Translate([System.Security.Principal.NTAccount]).Value
+                    if ($Mode -eq 'Include') {
+                        if ($SIDs -and $SIDs -notcontains $SID) {
+                            $Skip = $true
+                        }
+                    } elseif ($Mode -eq 'Exclude') {
+                        if ($SIDs -and $SIDs -contains $SID) {
+                            $Skip = $true
+                        }
+                    }
+                    try {
+                        $User = [System.Security.Principal.SecurityIdentifier]::new($SID).Translate([System.Security.Principal.NTAccount]).Value
+                    } catch {
+                        Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID, $Event.Id)
+                        $User = $SID
+                    }
+                    if ($Mode -eq 'Include') {
+                        if ($UserNames -and $UserNames -notcontains $User) {
+                            $Skip = $true
+                        }
+                    } elseif ($Mode -eq 'Exclude') {
+                        if ($UserNames -and $UserNames -contains $User) {
+                            $Skip = $true
+                        }
+                    }
                 } else {
                     Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID, $Event.Id)
                 }
@@ -104,7 +162,25 @@ if ($Events) {
                 ).Node.'#text'
                 if ($SID) {
                     try {
+                        if ($Mode -eq 'Include') {
+                            if ($SIDs -and $SIDs -notcontains $SID) {
+                                $Skip = $true
+                            }
+                        } elseif ($Mode -eq 'Exclude') {
+                            if ($SIDs -and $SIDs -contains $SID) {
+                                $Skip = $true
+                            }
+                        }
                         $User = [System.Security.Principal.SecurityIdentifier]::new($SID).Translate([System.Security.Principal.NTAccount]).Value
+                        if ($Mode -eq 'Include') {
+                            if ($UserNames -and $UserNames -notcontains $User) {
+                                $Skip = $true
+                            }
+                        } elseif ($Mode -eq 'Exclude') {
+                            if ($UserNames -and $UserNames -contains $User) {
+                                $Skip = $true
+                            }
+                        }
                     } catch {
                         Write-Warning ('Failed to parse SID ({0}) for event {1}.' -f $SID, $Event.Id)
                         $User = $SID
@@ -115,18 +191,22 @@ if ($Events) {
                 Break
             }
         }
-        $RowColour = switch ($Event.Id) {
-            7001 { 'success' }
-            7002 { 'danger' }
-            4800 { 'warning' }
-            4801 { 'other' }
-        }
-        New-Object -TypeName PSObject -Property @{
-            Time = $Event.TimeCreated
-            Id = $Event.Id
-            Type = $EventTypeLookup[$event.Id]
-            User = $User
-            RowColour = $RowColour
+        if ($Skip) {
+            Continue
+        } else {
+            $RowColour = switch ($Event.Id) {
+                7001 { 'success' }
+                7002 { 'danger' }
+                4800 { 'warning' }
+                4801 { 'other' }
+            }
+            New-Object -TypeName PSObject -Property @{
+                Time = $Event.TimeCreated
+                Id = $Event.Id
+                Type = $EventTypeLookup[$event.Id]
+                User = $User
+                RowColour = $RowColour
+            }
         }
     }
     if ($Results) {

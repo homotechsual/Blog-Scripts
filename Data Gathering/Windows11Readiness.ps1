@@ -279,15 +279,12 @@ public class CpuFamily
     try {
         $SecureBootEnabled = Confirm-SecureBootUEFI
     } catch [System.PlatformNotSupportedException] {
-        $SecureBootCapable = $False
         $SecureBootEnabled = $False
         $SecureBootDetail = 'Secure Boot not supported'
     } catch [System.UnauthorizedAccessException] {
-        $SecureBootCapable = $null
         $SecureBootEnabled = $False
         $SecureBootDetail = 'Unauthorized access'
     } catch {
-        $SecureBootCapable = $null
         $SecureBootEnabled = $False
         $SecureBootDetail = 'Unknown Error'
     }
