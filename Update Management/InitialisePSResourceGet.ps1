@@ -7,9 +7,14 @@ function Initialise-PSResourceGet {
         This script will check for common issues with PowerShellGet and PackageManagement and then install PSResourceGet.
 
     .NOTES
+        Version:        2.1
+        Author:         Mikey O'Toole
+        Creation Date:  2024/05/31
+        Purpose/Change: Altered removal logic for PackageManagement and PowerShellGet to remove all versions except the latest or any specifically excluded versions.
+        --------------------------------------------------------------------
         Version:        2.0
         Author:         Mikey O'Toole
-        Creation Date:  2024/03.26
+        Creation Date:  2024/03/26
         Purpose/Change: Updated to also install PSResourceGet aka PowerShellGet v3. Now downloads the PackageManagmenet and PowerShellGet modules from the PowerShell Gallery directly rather than a zip on GitHub.
         --------------------------------------------------------------------
         Version:        1.0
@@ -53,10 +58,13 @@ function Initialise-PSResourceGet {
         Get-ChildItem -Path $ModulePath -Filter '_rels' -Recurse -Directory | Remove-Item -Force -Recurse
         Get-ChildItem -Path $ModulePath -Filter 'package' -Recurse -Directory | Remove-Item -Force -Recurse
     }
+    function Get-LatestModuleVersion ([String]$ModuleName) {
+        $Module = Invoke-RestMethod -Uri ("{0}/FindPackagesById()?id='{1}'&`$filter=IsLatestVersion and Id eq '{1}'" -f $GalleryURL, $ModuleName) -ErrorAction Stop
+        $Module.Properties.NormalizedVersion
+    }
     function Save-ModuleFromGallery ([String[]]$ModuleNames) {
         foreach ($ModuleName in $ModuleNames) {
-            $Module = Invoke-RestMethod -Uri ("{0}/FindPackagesById()?id='{1}'&`$filter=IsLatestVersion and Id eq '{1}'" -f $GalleryURL,  $ModuleName) -ErrorAction Stop
-            $ModuleVersion = $Module.Properties.NormalizedVersion
+            $ModuleVersion = Get-LatestModuleVersion -ModuleName $ModuleName
             $ModuleURL = ('https://www.powershellgallery.com/api/v2/package/{0}/{1}' -f $ModuleName, $ModuleVersion)
             $WebClient = [System.Net.WebClient]::new()
             $ModuleFileName = ('{0}-{1}.zip' -f $ModuleName, $ModuleVersion)
@@ -112,30 +120,47 @@ function Initialise-PSResourceGet {
         }
     } catch {
         Write-Verbose 'Missing Package Manager, installing'
-        $NeededModules = 'PowerShellGet', 'PackageManagement'
+        $NeededModules = @(
+            [PSCustomObject]@{
+                name = 'PowerShellGet'
+                excludeVersions = @((Get-LatestModuleVersion -ModuleName 'PowerShellGet'))
+            },
+            [PSCustomObject]@{
+                name = 'PackageManagement'
+                excludeVersions = @(1.0.0.1, (Get-LatestModuleVersion -ModuleName 'PackageManagement'))
+            }
+        )
         Save-ModuleFromGallery -ModuleNames $NeededModules
         foreach ($Module in $NeededModules) {
-            Write-Verbose ('Processing {0}' -f $Module)
-            $DownloadedModulePath = Join-Path -Path $StagingPath -ChildPath $Module
-            $ModulePath = Join-Path -Path $env:ProgramFiles -ChildPath 'WindowsPowerShell\Modules'
-            $InstalledModulePath = Join-Path -Path $ModulePath -ChildPath $Module
-            if ($Host.Version.Major -lt 5) {
-                # These versions of PoSh want the files in the root of the drive not version sub folders
-                Write-Verbose ('Removing {0}' -f $InstalledModulePath)
-                Remove-Module -Name $Module -Force -ErrorAction SilentlyContinue
-                Remove-Item -Path $InstalledModulePath -Recurse -Force
-                Write-Verbose ('Copying {0} to {1}' -f $DownloadedModulePath, $ModulePath)
-                Get-ChildItem -Path $DownloadedModulePath | Get-ChildItem -Recurse | ForEach-Object {
-                    Copy-Item -Path $_.FullName -Destination $DownloadedModulePath -Force
+            try {
+                Write-Verbose ('Processing {0}' -f $Module.name)
+                $DownloadedModulePath = Join-Path -Path $StagingPath -ChildPath $Module.name
+                $ModulePath = Join-Path -Path $env:ProgramFiles -ChildPath 'WindowsPowerShell\Modules'
+                $InstalledModulePath = Join-Path -Path $ModulePath -ChildPath $Module.name
+                if ($Host.Version.Major -lt 5) {
+                    # These versions of PoSh want the files in the root of the drive not version sub folders
+                    Write-Verbose ('Removing {0}' -f $InstalledModulePath)
+                    Remove-Module -Name $Module -Force -ErrorAction SilentlyContinue
+                    Remove-Item -Path $InstalledModulePath -Recurse -Force
+                    Write-Verbose ('Copying {0} to {1}' -f $DownloadedModulePath, $ModulePath)
+                    Get-ChildItem -Path $DownloadedModulePath | Get-ChildItem -Recurse | ForEach-Object {
+                        Copy-Item -Path $_.FullName -Destination $DownloadedModulePath -Force
+                    }
+                } else {
+                    Write-Verbose ('Removing {0}' -f $InstalledModulePath)
+                    # If the folder name matches our target version don't remove it.
+                    if ((Get-ChildItem -Path $InstalledModulePath -Directory | Where-Object { $_.Name -ne $Module.excludeVersions })) {
+                        Remove-Module -Name $Module -Force -ErrorAction SilentlyContinue
+                        Remove-Item -Path $InstalledModulePath -Recurse -Force
+                        New-Item -Path $InstalledModulePath -ItemType Directory -ErrorAction SilentlyContinue
+                        Write-Verbose ('Copying {0} to {1}' -f $DownloadedModulePath, $ModulePath)
+                        Copy-Item -Path $DownloadedModulePath -Destination $ModulePath -Recurse -Force
+                    } else {
+                        Write-Verbose ('Skipping {0} as it is the an excluded or the latest version' -f $Module.name)
+                    }
                 }
-            } else {
-                Write-Verbose ('Removing {0}' -f $InstalledModulePath)
-                # If the folder name matches our target version don't remove it.
-                Remove-Module -Name $Module -Force -ErrorAction SilentlyContinue
-                Remove-Item -Path $InstalledModulePath -Recurse -Force
-                New-Item -Path $InstalledModulePath -ItemType Directory -ErrorAction SilentlyContinue
-                Write-Verbose ('Copying {0} to {1}' -f $DownloadedModulePath, $ModulePath)
-                Copy-Item -Path $DownloadedModulePath -Destination $ModulePath -Recurse -Force
+            } catch {
+                Write-Error ('Failed to process {0}, because of the error "{1}"' -f $Module.name, $_.Exception.Message)
             }
         }
         Remove-Item $StagingPath -Force -Recurse -ErrorAction SilentlyContinue
@@ -146,7 +171,7 @@ function Initialise-PSResourceGet {
                 $Path = (Join-Path -Path $ModulePath -ChildPath $Module)
                 if ((Test-Path $Path)) {
                     $Found = $true
-                    $FoundModulePath = Get-ChildItem $Path -Recurse | Where-Object { $_.Name -eq ('{0}.psd1' -f $Module) } | Select-Object -First 1
+                    $FoundModulePath = Get-ChildItem $Path -Recurse | Sort-Object -Descending | Where-Object { $_.Name -eq ('{0}.psd1' -f $Module) } | Select-Object -First 1
                     Import-Module $FoundModulePath.FullName
                 }
             }
