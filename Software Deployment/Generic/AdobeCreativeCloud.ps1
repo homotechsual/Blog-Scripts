@@ -16,7 +16,7 @@ function Utils.DownloadFile ([System.Uri]$URI, [System.IO.DirectoryInfo]$Path, [
     # Set the progress preference to silently continue.
     $ProgressPreference = 'SilentlyContinue'
     # Download the file.
-    $Download = Invoke-WebRequest -Uri $URI
+    $Download = Invoke-WebRequest -Uri $URI -UseBasicParsing
     # Get the filename from the URI.
     if (-not($Download.Headers.ContainsKey('Content-Disposition'))) {
         Write-Warning 'Unable to get Content-Disposition header from response. Attempting to use fallback filename.'
