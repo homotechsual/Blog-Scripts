@@ -6,7 +6,8 @@
 
         Consult the blog post for the fields requires in NinjaOne including the field types and default names.
     .NOTES
-        2023-09-06: Initial version
+        2024-06-25: Exit if a retail version of Office is detected or if an unknown edition is detected.
+        2024-06-16: Initial version
     .LINK
         Blog post: Not blogged yet.
 #>
@@ -180,6 +181,12 @@ if ($OfficeVersion.Major -eq '16') {
             Write-Error 'Unable to get the latest update information.'
             Exit 1
         }
+    } elseif ($OfficeProductIds -like '*Retail*') {
+        Write-Error 'Retail version of Office detected. This script only works with Microsoft 365 Apps or Volume License versions of Office.'
+        Exit 1
+    } else {
+        Write-Error 'Unknown edition of Office detected. This script only works with Microsoft 365 Apps or Volume License versions of Office.'
+        Exit 1
     }
 }
 # Create a hashtable of the release types.
