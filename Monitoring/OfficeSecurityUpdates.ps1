@@ -6,6 +6,7 @@
 
         Consult the blog post for the fields requires in NinjaOne including the field types and default names.
     .NOTES
+        2024-07-05: Modularise the fields to output to NinjaOne to allow granular control over fields used.
         2024-06-25: Exit if a retail version of Office is detected or if an unknown edition is detected.
         2024-06-16: Initial version
     .LINK
@@ -18,6 +19,10 @@ $StatusCustomField = 'officeStatus' # Text field showing information on the stat
 $SecureCustomField = 'officeSecure' # Checkbox field showing whether the installed version is the latest security update.
 $OutputDetail = $true # Set to $true to output a card of the data to the field name specified in $OutputDetailField.
 $OutputDetailField = 'officeDetail' # WYSIWYG field showing the details of the installed version.
+$ReportVersion = $true # Set to $true to only report the installed version of Office.
+$ReportChannel = $true # Set to $true to only report the update channel of Office.
+$ReportStatus = $true # Set to $true to only report the status of the installed version of Office.
+$ReportSecure = $true # Set to $true to only report whether the installed version is the latest security update.
 ### End of field names.
 
 $IsC2R = Test-Path 'HKLM:\SOFTWARE\Microsoft\Office\ClickToRun'
@@ -302,10 +307,22 @@ $CardHTML.Add('</div>')
 $CardHTML.Add('</div>')
 ### End of NinjaOne convert object to card.
 # Set the custom fields in NinjaOne.
-Ninja-Property-Set $InstalledVersionCustomField $OfficeVersion
-Ninja-Property-Set $ChannelCustomField $OfficeChannel.Name
-Ninja-Property-Set $StatusCustomField $Status
-Ninja-Property-Set $SecureCustomField $Secure
+if ($ReportVersion) {
+    Write-Output ('Installed Version: {0}' -f $OfficeVersion)
+    Ninja-Property-Set $InstalledVersionCustomField $OfficeVersion
+}
+if ($ReportChannel) {
+    Write-Output ('Update Channel: {0}' -f $OfficeChannel.Name)
+    Ninja-Property-Set $ChannelCustomField $OfficeChannel.Name
+}
+if ($ReportStatus) {
+    Write-Output ('Status: {0}' -f $Status)
+    Ninja-Property-Set $StatusCustomField $Status
+}
+if ($ReportSecure) {
+    Write-Output ('Secure: {0}' -f $Secure)
+    Ninja-Property-Set $SecureCustomField $Secure
+}
 if ($OutputDetail) {
     $Detail = $CardHTML -join ''
     $Detail | Ninja-Property-Set-Piped $OutputDetailField
