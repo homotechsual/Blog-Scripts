@@ -19,10 +19,10 @@ $StatusCustomField = 'officeStatus' # Text field showing information on the stat
 $SecureCustomField = 'officeSecure' # Checkbox field showing whether the installed version is the latest security update.
 $OutputDetail = $true # Set to $true to output a card of the data to the field name specified in $OutputDetailField.
 $OutputDetailField = 'officeDetail' # WYSIWYG field showing the details of the installed version.
-$ReportVersion = $true # Set to $true to only report the installed version of Office.
-$ReportChannel = $true # Set to $true to only report the update channel of Office.
-$ReportStatus = $true # Set to $true to only report the status of the installed version of Office.
-$ReportSecure = $true # Set to $true to only report whether the installed version is the latest security update.
+$ReportVersion = $true # Set to $true to report the installed version of Office.
+$ReportChannel = $true # Set to $true to report the update channel of Office.
+$ReportStatus = $true # Set to $true to report the status of the installed version of Office.
+$ReportSecure = $true # Set to $true to report whether the installed version is the latest security update.
 ### End of field names.
 
 $IsC2R = Test-Path 'HKLM:\SOFTWARE\Microsoft\Office\ClickToRun'
