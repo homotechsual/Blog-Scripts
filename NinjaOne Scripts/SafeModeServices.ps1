@@ -47,9 +47,9 @@ function Registry.ShouldBe {
         }
         $LoopCount = 0
     }
-    process {
-        do {
-            if ($Name) {
+    process {   
+        if ($Name) {
+            do {
                 # Handle named registry values.
                 # Make sure the registry value exists.
                 if (!(Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue)) {
@@ -74,7 +74,9 @@ function Registry.ShouldBe {
                     # Short circuit the loop if we're skipping confirmation.
                     $LoopCount = 3
                 }
-            } else {
+            } while ((Get-ItemProperty -Path $Path -Name $Name).$Name -ne $Value -and $LoopCount -lt 3)
+        } else {#
+            do {
                 # Handle default registry values.
                 # Make sure the registry value exists.
                 $RegistryValue = Get-ItemProperty -Path $Path -ErrorAction SilentlyContinue
@@ -100,8 +102,8 @@ function Registry.ShouldBe {
                     # Short circuit the loop if we're skipping confirmation.
                     $LoopCount = 3
                 }
-            }
-        } while ((Get-ItemProperty -Path $Path -Name $Name).$Name -ne $Value -and $LoopCount -lt 3)
+            } while ((Get-ItemProperty -Path $Path).'(default)' -ne $Value -and $LoopCount -lt 3)
+        }        
     }
 }
 $RegPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\SafeBoot\Network'
