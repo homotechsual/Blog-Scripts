@@ -33,7 +33,10 @@ function Registry.ShouldBe {
         # Don't confirm that the registry value was set correctly.
         [Parameter(ParameterSetName = 'Named')]
         [Parameter(ParameterSetName = 'Default')]
-        [Switch]$SkipConfirmation
+        [Switch]$SkipConfirmation,
+        # Use 'Default' parameter set if no name is provided.
+        [Parameter(ParameterSetName = 'Default')]
+        [Switch]$Default
     )
     begin {
         # Make sure the registry path exists.
@@ -107,5 +110,5 @@ function Registry.ShouldBe {
     }
 }
 $RegPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\SafeBoot\Network'
-Registry.ShouldBe -Path (Join-Path $RegPath 'NinjaRMMAgent') -Type 'String' -Value 'Service'
-Registry.ShouldBe -Path (Join-Path $RegPath 'ncstreamer') -Type 'String' -Value 'Service'
+Registry.ShouldBe -Path (Join-Path $RegPath 'NinjaRMMAgent') -Type 'String' -Value 'Service' -Default
+Registry.ShouldBe -Path (Join-Path $RegPath 'ncstreamer') -Type 'String' -Value 'Service' -Default
