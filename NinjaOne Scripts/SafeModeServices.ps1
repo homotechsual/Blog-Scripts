@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will allow the NinjaOne agent and NinjaOne remote services to run in Safe Mode with Networking.
     .NOTES
+        2024-07-25 - Fix bug where the registry function wasn't correctly handling setting the default value.
         2024-07-23 - Fix bug where the incorrect keys were being set in the registry. Thanks to @MisterC on NinjaOne Discord for pointing this out and sharing their code to fix it.
         2024-07-19 - Initial version
     .LINK

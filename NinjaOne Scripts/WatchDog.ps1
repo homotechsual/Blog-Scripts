@@ -8,11 +8,30 @@
         2024-06-24 - Initial version
     .LINK
         Blog post: Not blogged yet
+    .TODO
+        - Add logging to a Ninja field - name the function "Bark" (thanks @Ogre!)
 #>
 # Define the PowerShell script content for the watchdog
 $watchdogScript = @'
 $services = 'NinjaRMMAgent', 'ncstreamer'
 $maxRetries = 3
+
+function Bark {
+    $NinjaModuleLoaded = Get-Module 'NJCliPsh'
+    if ($NinjaModuleLoaded -eq $null) {
+        $NinjaModuleAvailable = Get-Module -ListAvailable -Name 'NJCliPsh'
+        if ($NinjaModuleAvailable -eq $null) {
+            Write-Host "Ninja module not available."
+            return
+        } else {
+            Import-Module 'NJCliPsh'
+        }
+    }
+    $WatchDogFieldValue = Ninja-Property-Get -Name 'watchDogActivity'
+    if ($WatchDogFieldValue -eq $null) {
+        
+    }  
+}
 
 foreach ($service in $services) {
     $serviceObject = Get-CimInstance -ClassName 'Win32_Service' -Filter "Name = '$service'"
