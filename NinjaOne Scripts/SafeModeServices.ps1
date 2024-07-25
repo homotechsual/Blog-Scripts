@@ -75,7 +75,7 @@ function Registry.ShouldBe {
                     $LoopCount = 3
                 }
             } while ((Get-ItemProperty -Path $Path -Name $Name).$Name -ne $Value -and $LoopCount -lt 3)
-        } else {#
+        } else {
             do {
                 # Handle default registry values.
                 # Make sure the registry value exists.
