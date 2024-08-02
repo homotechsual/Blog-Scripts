@@ -28,10 +28,9 @@ Begin {
     }
     $DownloadURI = 'https://go.microsoft.com/fwlink/?linkid=2171764'  
     Try {
-        $WebClient = [System.Net.WebClient]::new()
-        $WebClient.DownloadFile($DownloadURI, $FeatureUpgradeFile)
+        Invoke-WebRequest -Uri $DownloadURI -OutFile $FeatureUpgradeFile
     } Catch {
-        Write-Error "Could not download the Update Assistant."
+        Write-Error 'Could not download the Update Assistant.'
         Exit 1
     }
 }
