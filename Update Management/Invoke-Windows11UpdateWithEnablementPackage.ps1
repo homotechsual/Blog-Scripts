@@ -2,7 +2,7 @@
 # Notes:
 #       - Versions/URLs will need updating whenever there is a new enablement package
 # Changelog:
-#   1.1 - 2025-08-02 - Added - Improved error-handling/notification (by homotechsual)
+#   1.1 - 2024-08-02 - Added - Improved error-handling/notification (by homotechsual)
 #   1.0 - 2024-06-10 - Initial release (by @Morte on NinjaOne Discord)
 $Win11TargetVersion = "23H2"
 $WorkingDirectory = $ENV:Temp
