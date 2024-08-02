@@ -15,6 +15,8 @@ Begin {
     }
     if (![String]::IsNullOrWhiteSpace($ENV:FeatureUpgradeFile)) {
         $FeatureUpgradeFile = $ENV:featureUpgradeFile
+    } else {
+        $FeatureUpgradeFile = Join-Path -Path $FeatureUpgradeDir -ChildPath 'Windows11InstallationAssistant.exe'
     }
     if (!(Test-Path $FeatureUpgradeDir)) {
         New-Item $FeatureUpgradeDir -Force -ErrorAction SilentlyContinue -ItemType Directory | Out-Null
