@@ -41,7 +41,7 @@ Process {
         
         Start-Process -FilePath $featureUpgradeFile -ArgumentList @('/quietinstall', '/skipeula', '/auto', 'upgrade', '/copylogs', $LoggingDir) -Wait -NoNewWindow
     } Catch {
-        Write-Host "The Windows 11 Installation Assistant failed."
+        Write-Host "The Windows 10 Installation Assistant failed."
         Exit 1
     }
 }
