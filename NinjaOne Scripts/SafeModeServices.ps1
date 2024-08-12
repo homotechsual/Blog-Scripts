@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will allow the NinjaOne agent and NinjaOne remote services to run in Safe Mode with Networking.
     .NOTES
+        2024-08-12 - Fix incorrect handling of default parameter set.
         2024-07-25 - Fix bug where the registry function wasn't correctly handling setting the default value.
         2024-07-23 - Fix bug where the incorrect keys were being set in the registry. Thanks to @MisterC on NinjaOne Discord for pointing this out and sharing their code to fix it.
         2024-07-19 - Initial version
@@ -36,7 +37,7 @@ function Registry.ShouldBe {
         [Parameter(ParameterSetName = 'Default')]
         [Switch]$SkipConfirmation,
         # Use 'Default' parameter set if no name is provided.
-        [Parameter(ParameterSetName = 'Default')]
+        [Parameter(Mandatory, ParameterSetName = 'Default')]
         [Switch]$Default
     )
     begin {
@@ -86,7 +87,7 @@ function Registry.ShouldBe {
                 $RegistryValue = Get-ItemProperty -Path $Path -ErrorAction SilentlyContinue
                 if (!$RegistryValue -or !$RegistryValue.'(default)') {
                     Write-Warning ("Registry value in path '$Path' does not exist. Setting to '$Value'.")
-                    New-ItemProperty -Path $Path -Value $Value -Force -Type $Type | Out-Null
+                    New-ItemProperty -Path $Path -Value $Value -Force -Name '(default)' -Type $Type | Out-Null
                 }
                 # Make sure the registry value type is correct. Skip if it's a None type.
                 if ($Type -ne [Microsoft.Win32.RegistryValueKind]::None) {
