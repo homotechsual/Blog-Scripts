@@ -4,6 +4,7 @@
     .DESCRIPTION
         Removes the personal Teams application from the machine and deprovisions it. This script is intended to be run as a machine-level script and requires the ability to modify token privileges and registry keys.
     .NOTES
+        2024-08-14: Fix deprovisioning logic and suppress Write-Host warning.
         2024-07-25: Update the `Registry.ShouldBe` function.
         2024-06-04: Initial version
     .LINK
@@ -114,7 +115,7 @@ function Utils.TakeOwnership {
     )
     begin {
         # Add a C# assembly to the session so we can adjust the token privileges.
-$AdjustTokenPrivileges=@"
+        $AdjustTokenPrivileges = @'
 using System;
 using System.Runtime.InteropServices;
 
@@ -169,7 +170,7 @@ using System.Runtime.InteropServices;
             return retVal;
         }
     }
-"@
+'@
     }
     process {
         $Item = Get-Item $Path
@@ -241,21 +242,27 @@ using System.Runtime.InteropServices;
 ## This function is used to ensure that an app package is uninstalled for all users and deprovisioned.
 function AppPackage.RemoveandDeprovision {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Runs as RMM script. Write-Host is acceptable.')]
     param(
+        # An array of package names to remove.
         [Parameter(Mandatory)]
-        [string[]]$PackageNames
+        [string[]]$PackageNames,
+        # Allow wildcard / partial matches.
+        [switch]$AllowWildcards
     )
     $exitvalue = 0
     foreach ($PackageName in $PackageNames) {
         Write-Host ('Checking if package {0} is installed...' -f $PackageName)
-        # Find the provisioned package
-        $ProvisionedPackage = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $PackageName }
         $PackageRemovalLoopCount = 0
         # Try current user remove.
         do {
             Write-Host ('Attempt {0} to find and remove package {1}.' -f $PackageRemovalLoopCount, $PackageName)
             $PackageRemovalLoopCount++
-            $Package = Get-AppxPackage -Name $PackageName
+            $Package = if ($AllowWildcards) {
+                Get-AppxPackage | Where-Object { $_.Name -like ('*{0}*' -f $PackageName) }
+            } else {
+                Get-AppxPackage -Name $PackageName
+            }
             if ($Package) {
                 try {
                     # Uninstall the app package
@@ -274,7 +281,11 @@ function AppPackage.RemoveandDeprovision {
         do {
             Write-Host ('Attempt {0} to find and remove package {1}.' -f $PackageRemovalLoopCount, $PackageName)
             $PackageRemovalLoopCount++
-            $Package = Get-AppxPackage -Name $PackageName -AllUsers
+            $Package = if ($AllowWildcards) {
+                Get-AppxPackage -AllUsers | Where-Object { $_.Name -like ('*{0}*' -f $PackageName) }
+            } else {
+                Get-AppxPackage -AllUsers -Name $PackageName
+            }
             if ($Package) {
                 try {
                     # Uninstall the app package
@@ -289,22 +300,26 @@ function AppPackage.RemoveandDeprovision {
                 Write-Host ('Package {0} is not installed or not found. Skipping uninstallation.' -f $PackageName)
             }
         } until (($null -eq $Package) -or $PackageRemovalLoopCount -eq 3)
-        $Package = Get-AppxPackage -Name $PackageName -AllUsers
+        $Package = if ($AllowWildcards) {
+            Get-AppxPackage -AllUsers | Where-Object { $_.Name -like ('*{0}*' -f $PackageName) }
+        } else {
+            Get-AppxPackage -AllUsers -Name $PackageName
+        }
         if ($Package) {
             Write-Error ('Failed to uninstall package {0} after 3 attempts. Please see the error messages above.' -f $PackageName)
             $exitvalue++
         }
-        if ($ProvisionedPackage) {
-            try {
-                # Deprovision the app package
-                $null = $ProvisionedPackage | Remove-AppxProvisionedPackage -AllUsers -Online
-                Write-Host ('Package {0} has been deprovisioned.' -f $PackageName)
-            } catch {
-                Write-Error ('Failed to deprovision app package {0}. Error: {1}' -f $PackageName, $_)
-                $exitvalue++
+        try {
+            # Deprovision the app package
+            if ($AllowWildcards) {
+                Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like ('*{0}*' -f $PackageName) } | Remove-AppxProvisionedPackage -AllUsers -Online
+            } else {
+                Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $PackageName } | Remove-AppxProvisionedPackage -AllUsers -Online
             }
-        } else {
-            Write-Host ('Package {0} is not provisoned. Skipping deprovisioning.' -f $PackageName)
+            Write-Host ('Package {0} has been deprovisioned.' -f $PackageName) 
+        } catch {
+            Write-Error ('Failed to deprovision app package {0}. Error: {1}' -f $PackageName, $_)
+            $exitvalue++
         }
     }
     return $exitvalue
