@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will enable advanced audit settings on a Windows device. It will also set the advanced audit settings to log all events for success and failure. This is useful for monitoring user session events.
     .NOTES
+        2024-08-14: V1.3 - Less strict verficiation of the settings type to allow for handling of weird edge cases where the type result is different.
         2024-06-21: V1.2 - Test the current settings before application, and verify the settings after application. Allow the script to run in test-only mode to verify the settings without applying them and allow skipping the verification of the settings.
         2024-05-14: V1.1 - Use GUIDs for categories and subcategories to ensure compatibility with all Windows languages.
         2024-05-14: V1.0 - Initial version
@@ -184,7 +185,7 @@ function Set-AuditPolicy {
     [CmdletBinding()]
     param(
         [String]$Category,
-        [System.Collections.Generic.List[hashtable]]$Settings
+        [System.Collections.Generic.List[Object]]$Settings
     )
     $AuditPolCommand = Get-AuditPolCommand
     Write-Host ('Trying to set advanced audit settings for {0}.' -f $Category)
