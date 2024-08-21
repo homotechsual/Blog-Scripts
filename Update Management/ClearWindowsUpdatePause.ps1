@@ -6,6 +6,7 @@
 
         WARNING: This script removes entire registry keys, if you do not have a system / script or GPO in place to reassert these settings you may want to reconsider running this script.
     .NOTES
+        2024-08-21: V1.2 - Fix broken parametersets.
         2024-08-21: V1.1 - Add NinjaOne script variables and parameter support to allow running in Test, Clear or Report modes with optional NinjaOne field names. Clear and Report can be used together. Clear implies Test.
         2024-08-20: V1.0 - Initial version
     .LINK
@@ -14,23 +15,16 @@
 [CmdletBinding()]
 param(
     # Test for the pause state.
-    [Parameter(Mandatory, ParameterSetName = 'Test')]
     [switch]$Test,
     # Clear the pause state.
-    [Parameter(Mandatory, ParameterSetName = 'Clear')]
-    [Parameter(ParameterSetName = 'Report')]
     [switch]$Clear,
     # Report the pause state.
-    [Parameter(Mandatory, ParameterSetName = 'Report')]
     [switch]$Report,
     # NinjaOne field name for the report. Use a checkbox field type.
-    [Parameter(ParameterSetName = 'Report')]
     [string]$NinjaOneField = 'windowsUpdatePaused',
     # Include detailed information in the report.
-    [Parameter(ParameterSetName = 'Report')]
     [switch]$IncludeDetails,
     # NinjaOne field name for the detailed information in the report. Use a multi-line text field type.
-    [Parameter(ParameterSetName = 'Report')]
     [string]$NinjaOneDetailsField = 'windowsUpdatePausedDetails'
 )
 # Check for environment variables.
