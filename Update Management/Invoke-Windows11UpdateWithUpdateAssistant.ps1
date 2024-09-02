@@ -21,7 +21,7 @@ Begin {
     if (!(Test-Path $FeatureUpgradeDir)) {
         New-Item $FeatureUpgradeDir -Force -ErrorAction SilentlyContinue -ItemType Directory | Out-Null
     }
-    if (-Not (Test-Path $FeatureUpgradeFile)) {
+    if ([String]::IsNullOrWhiteSpace($FeatureUpgradeFile)) {
         $FeatureUpgradeFile = Join-Path -Path $FeatureUpgradeDir -ChildPath 'Windows11InstallationAssistant.exe'
     }
     $LoggingDir = Join-Path -Path $FeatureUpgradeDir -ChildPath 'Logs'
