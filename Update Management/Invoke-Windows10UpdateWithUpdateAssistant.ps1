@@ -20,8 +20,6 @@ Begin {
         New-Item $FeatureUpgradeDir -Force -ErrorAction SilentlyContinue -ItemType Directory | Out-Null
     }
     if (-Not (Test-Path $FeatureUpgradeFile)) {
-        $FeatureUpgradeFile = Join-Path -Path $FeatureUpgradeDir -ChildPath 'Windows11InstallationAssistant.exe'
-    } else {
         $FeatureUpgradeFile = Join-Path -Path $FeatureUpgradeDir -ChildPath 'Windows10UpgradeAssistant.exe'
     }
     $LoggingDir = Join-Path -Path $FeatureUpgradeDir -ChildPath 'Logs'
