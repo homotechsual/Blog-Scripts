@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will monitor the support status of the currently installed Windows OS and report back to NinjaOne.
     .NOTES
+        2024-09-25: Handle Windows 10 / 11 Business Product Name / Caption strings.
         2024-09-25: Change from registry to CIM to get the Windows Edition / Product info as it returns accurate info.
         2024-04-02: Handle property names which don't contain the Edition coding.
         2023-10-26: Update to new property name in EndOfLife API.
@@ -27,7 +28,7 @@ $EoLRequestParams = @{
 $NTCurrentVersionRegistry = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
 $ProductName = Get-CimInstance -ClassName 'Win32_OperatingSystem' | Select-Object -ExpandProperty 'Caption'
 $DisplayVersion = (Get-ItemProperty -Path $NTCurrentVersionRegistry -Name DisplayVersion).DisplayVersion
-if ($ProductName -like '*Home' -or $ProductName -like '*Pro') {
+if ($ProductName -like '*Home' -or $ProductName -like '*Pro' -or $ProductName -like '*Business') {
     $Edition = '(W)'
 } else {
     $Edition = '(E)'
