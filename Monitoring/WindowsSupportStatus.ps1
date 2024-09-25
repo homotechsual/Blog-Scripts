@@ -24,7 +24,7 @@ $EoLRequestParams = @{
     Method = 'GET'
 }
 $NTCurrentVersionRegistry = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
-$ProductName = (Get-ItemProperty -Path $NTCurrentVersionRegistry -Name ProductName).ProductName
+$ProductName = Get-CimInstance -ClassName 'Win32_OperatingSystem' | Select-Object -ExpandProperty 'Caption'
 $DisplayVersion = (Get-ItemProperty -Path $NTCurrentVersionRegistry -Name DisplayVersion).DisplayVersion
 if ($ProductName -like '*Home' -or $ProductName -like '*Pro') {
     $Edition = '(W)'
