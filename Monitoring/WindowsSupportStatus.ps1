@@ -4,6 +4,7 @@
     .DESCRIPTION
         This script will monitor the support status of the currently installed Windows OS and report back to NinjaOne.
     .NOTES
+        2024-09-25: Change from registry to CIM to get the Windows Edition / Product info as it returns accurate info.
         2024-04-02: Handle property names which don't contain the Edition coding.
         2023-10-26: Update to new property name in EndOfLife API.
         2023-08-02: Update to new property name in EndOfLife API.
