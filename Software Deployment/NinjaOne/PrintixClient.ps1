@@ -4,15 +4,19 @@
     .DESCRIPTION
         Uses documentation fields to pull client specific Printix information to download that client's installer from Printix and install it on the endpoint.
     .NOTES
+        2025-01-10: Add script variables support
         2023-02-01: Initial version
     .LINK
-        Blog post: https://homotechsual.dev/2023/02/01/Deploy-Printix-NinjaOne/
+        Blog post: https://homotechsual.dev/2024/01/10/Deploy-Printix-NinjaOne/
 #>
 [Cmdletbinding()]
 param (
     [Parameter(Mandatory = $true)]
     [String]$DocumentTemplate
 )
+if ($ENV:DocumentTemplate) {
+    $DocumentTemplate = $ENV:DocumentTemplate
+}
 try {
     $PrintixTenantId = Ninja-Property-Docs-Get-Single $DocumentTemplate printixTenantId
     $PrintixTenantDomain = Ninja-Property-Docs-Get-Single $DocumentTemplate printixTenantDomain
