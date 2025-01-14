@@ -4,7 +4,8 @@
 # DESCRIPTION
 ## Uses documentation fields to pull client specific Printix information to download that client's installer from Printix and install it on the endpoint.
 # NOTES
-## 2024-01-10: Initial version
+## 2025-01-14: Skip installation if the skipPrintixInstall Ninja Custom Field is set.
+## 2025-01-10: Initial version
 # LINK
 ## Blog post: https://homotechsual.dev/2024/01/10/Deploy-Printix-NinjaOne/
 
@@ -14,6 +15,12 @@ logMetaDir="/Library/Logs/MJCO/RMM/$softwareName"
 log="$logMetaDir/$softwareName.log"
 # Ninja Custom Fields
 ninjaCLI="$NINJA_DATA_PATH/ninjarmm-cli"
+# Skip installation with a 0 exit code if the skipPrintixInstall Ninja Custom Field is set to 1.
+skipPrintixInstall=$("$ninjaCLI" "get" "skipPrintixInstall")
+if [ "$skipPrintixInstall" == "1" ]; then
+    echo "$(date) | INFO: Printix install skipped due to presence of custom field on device."
+    exit 0
+fi
 # Get the document template name, if passed as an argument or environment variable. Environment variable takes precedence if both are set.
 if [ -n "$1" ]; then
     documentTemplateName="$1"
