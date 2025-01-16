@@ -1,8 +1,8 @@
 <#
     .SYNOPSIS
-        Ninja Scripts - Safe Mode Services
+        Ninja Scripts - Certificate Signing Check
     .DESCRIPTION
-        This script will allow the NinjaOne agent and NinjaOne remote services to run in Safe Mode with Networking.
+        This script will check NinjaOne provided executables to ensure they are signed with an expected certificate.
     .NOTES
         2025-01-16 - Add additional certificate signers.
         2025-01-15 - Initial version
