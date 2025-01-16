@@ -14,6 +14,7 @@ $ExpectedSigners = @(
     'CN="NinjaRMM, LLC", O="NinjaRMM, LLC", S=California, C=US',
     'CN="NinjaRMM, LLC", O="NinjaRMM, LLC", L=San Francisco, S=California, C=US',
     'CN=Bitdefender SRL, OU=DEVSUP EPSINTEGRATION", O=Bitdefender SRL, L=Bucharest, C=RO',
+    'CN=Bitdefender SRL, OU="OU = DEVSUP EPSINTEGRATION", O=Bitdefender SRL, L=Bucharest, C=RO',
     'CN=Bitdefender SRL, OU=DEVSUP EPSINSTALLER, O=Bitdefender SRL, L=Bucharest, C=RO',
     'CN="OPSWAT, Inc.", O="OPSWAT, Inc.", L=San Francisco, S=California, C=US'
 )
