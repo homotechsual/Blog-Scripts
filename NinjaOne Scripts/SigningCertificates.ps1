@@ -12,6 +12,7 @@
 $ExpectedSigners = @(
     'CN=NinjaOne LLC, O=NinjaOne LLC, L=Oldsmar, S=Florida, C=US, SERIALNUMBER=6821849, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.2=Delaware, OID.1.3.6.1.4.1.311.60.2.1.3=US',
     'CN="NinjaRMM, LLC", O="NinjaRMM, LLC", S=California, C=US',
+    'CN="NinjaRMM, LLC", O="NinjaRMM, LLC", L=San Francisco, S=California, C=US',
     'CN=Bitdefender SRL, OU=DEVSUP EPSINTEGRATION", O=Bitdefender SRL, L=Bucharest, C=RO',
     'CN=Bitdefender SRL, OU=DEVSUP EPSINSTALLER, O=Bitdefender SRL, L=Bucharest, C=RO',
     'CN="OPSWAT, Inc.", O="OPSWAT, Inc.", L=San Francisco, S=California, C=US'
