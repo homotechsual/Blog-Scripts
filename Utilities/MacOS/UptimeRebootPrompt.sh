@@ -11,16 +11,13 @@
 getLoggedInUser() {
 	echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ && ! /loginwindow/ { print $3 }'
 }
-# If no user is logged in, reboot without warning
+# Get the currently logged in user
 loggedInUser=$(getLoggedInUser)
-if [[ $loggedInUser = "" ]]; then
-    echo "No user logged in, rebooting without warning."
-    shutdown -r now
-    exit 0
-else
+if [[ $loggedInUser != "" ]]; then
     loggedInUserId=$(id -u "$loggedInUser")
     echo "User $loggedInUser is logged in with ID $loggedInUserId."
 fi
+
 # Define max uptime in days, pull from Ninja Script Variable if set (maxUptime), otherwise use $1 if set, otherwise default to 14 days
 if [ -n "$maxUptime" ]; then
     maxAllowedUptime=$maxUptime
@@ -128,6 +125,12 @@ fi
 echo "Mac uptime: $currentUptime days."
 echo "Warning days: $((maxUptime/2))"
 echo "Force days: $maxUptime"
+
+# If no user is logged in and the uptime is greater than half the max allowed uptime, force a restart now.
+if [[ $loggedInUser == "" ]] && [[ $currentUptime -ge $(($maxAllowedUptime/2)) ]]; then
+    echo "No user logged in, forcing restart."
+    shutdown -r now
+fi
 
 if [ $currentUptime -ge $maxAllowedUptime ]; then
     # Force the restart if the uptime is greater than the max allowed uptime
