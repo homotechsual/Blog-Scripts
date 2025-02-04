@@ -70,7 +70,7 @@ EOF
 # Function to prompt the user to restart their Mac for uptime
 warningUserPrompt(){
 	userResponse=$( launchctl asuser $loggedInUserId /usr/bin/osascript <<EOF
-set buttonResponse to button returned of (display alert "Uptime Warning" message "Your Mac has been online for $currentUptime days without rebooting. Please restart soon!" buttons {"Restart Now", "Restart Later"} default button "Restart Later")
+set buttonResponse to button returned of (display dialog "Your Mac has been online for $currentUptime days without rebooting. Please restart soon!" with title "Uptime Warning" buttons {"Restart Now", "Restart Later"} default button "Restart Later")
 return buttonResponse
 EOF
 )
@@ -84,7 +84,7 @@ EOF
 # Function to inform the user that their Mac will be restarted
 forcefulUserPrompt(){
     launchctl asuser $loggedInUserId /usr/bin/osascript <<EOF
-display alert "Restarting Your Mac" message "Your Mac has been online for more than the permitted $maxAllowedUptime days without rebooting. A restart will occur in $preRebootTimeout seconds." buttons {"Restart Now"} default button "Restart Now" giving up after $preRebootTimeout
+display dialog "Your Mac has been online for more than the permitted $maxAllowedUptime days without rebooting. A restart will occur in $preRebootTimeout seconds." with title "Restarting Your Mac" buttons {"Restart Now"} default button "Restart Now" giving up after $preRebootTimeout
 EOF
 	gracefulRestart
 }
@@ -92,7 +92,7 @@ EOF
 # Function to prompt the user to restart their Mac for pending updates
 installUpdatesUserPrompt(){
 	userResponse=$( launchctl asuser $loggedInUserId /usr/bin/osascript <<EOF
-set buttonResponse to button returned of (display alert "Update Warning" message "Your Mac has installed updates which require a restart to complete." buttons {"Restart Now", "Restart Later"} default button "Restart Later")
+set buttonResponse to button returned of (display dialog "Your Mac has installed updates which require a restart to complete." with title "Update Warning" buttons {"Restart Now", "Restart Later"} default button "Restart Later")
 return buttonResponse
 EOF
 )
