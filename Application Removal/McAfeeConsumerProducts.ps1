@@ -2,7 +2,7 @@
     .SYNOPSIS
         Application Removal - Windows - McAfee Consumer Products
     .DESCRIPTION
-        This script is used to remove (usually pre/OEM installed) McAfee Consumer products from Windows machines. It includes removal of McAfee store apps. It uses an old version of MCPR - McAfee's removal tool which you'll find in this repository in the supporting files folder. You'll need to host this somewhere the script can download it and put the URL into the script where you see $MCPRURL below.
+        This script is used to remove (usually pre/OEM installed) McAfee Consumer products from Windows machines. It includes removal of McAfee store apps. It uses an old version of MCPR - McAfee's removal tool which you'll find in this repository in the supporting files folder. You'll need to host this somewhere the script can download it and put the URL into the script where you see $MCPRURL below. This will require a reboot to fully remove McAfee!
     .NOTES
         2025-01-18: Make sure we kill new MSI based packages.
         2024-11-09: Store app removal refactor.
