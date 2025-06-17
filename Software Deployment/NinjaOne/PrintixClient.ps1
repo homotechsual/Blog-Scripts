@@ -4,6 +4,7 @@
     .DESCRIPTION
         Uses documentation fields to pull client specific Printix information to download that client's installer from Printix and install it on the endpoint.
     .NOTES
+        2025-06-17: Rework parts of the download and TLS setting code to make the download experience a bit more robust.
         2025-01-14: Install the .NET Desktop Runtime 8 using WinGet.
         2025-01-10: Add script variables support
         2023-02-01: Initial version
@@ -12,7 +13,7 @@
 #>
 [Cmdletbinding()]
 param ()
-$TLSProtocol = [System.Net.SecurityProtocolType]'TLS12, TLS13'
+$TLSProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls13
 [System.Net.ServicePointManager]::SecurityProtocol = $TLSProtocol
 # First try to install .NET Desktop Runtime using WinGet.
 $skipPrintixInstall = Ninja-Property-Get skipPrintixInstall
@@ -55,6 +56,8 @@ if (-not $DotNetDesktopRuntime8) {
 }
 # Install the Printix Client
 try {
+    $OPP = $ProgressPreference
+    $ProgressPreference = 'SilentlyContinue'
     $PrintixTenantId = Ninja-Property-Docs-Get-Single 'Integration Identifiers' printixTenantId
     $PrintixTenantDomain = Ninja-Property-Docs-Get-Single 'Integration Identifiers' printixTenantDomain
     Write-Verbose ('Found Printix Tenant: {0} ({1})' -f $PrintixTenantId, $PrintixTenantDomain)
@@ -80,6 +83,7 @@ try {
             exit 1
         }
     }
+    $ProgressPreference = $OPP
 } catch {
     Write-Error ('Failed to install Printix Client: `r`n {0}' -f $_)
     exit 1
