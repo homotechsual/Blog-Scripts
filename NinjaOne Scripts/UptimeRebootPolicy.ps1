@@ -78,7 +78,7 @@ param(
 
 	[string]$ToastTitle = $(if ($env:toastTitle) { $env:toastTitle } else { 'Restart Recommended' }),
 
-	[string]$ToastMessagePrefix = $(if ($env:toastMessagePrefix) { $env:toastMessagePrefix } else { 'This device has been online for longer than the recommended uptime window.' }),
+	[string]$ToastMessagePrefix = $(if ($env:toastMessagePrefix) { $env:toastMessagePrefix } else { 'Reboot scheduled to preserve system security and stability.' }),
 
 	[ValidateRange(1, 168)]
 	[int]$RebootDeadlineHours = $(if ($env:rebootDeadlineHours) { [int]$env:rebootDeadlineHours } else { 24 }),
@@ -1001,10 +1001,10 @@ try {
 	`$escapedDetail = if ([string]::IsNullOrWhiteSpace(`$ToastDetail)) { '' } else { [System.Security.SecurityElement]::Escape(`$ToastDetail.Trim()) }
 	`$detailXml = if ([string]::IsNullOrWhiteSpace(`$escapedDetail)) { '' } else { "<text hint-wrap='true' hint-maxLines='2'>`$escapedDetail</text>" }
 	if ([string]::IsNullOrWhiteSpace(`$ToastScenario)) {
-		`$toastXml = "<toast><visual><binding template='ToastGeneric'><text hint-maxLines='1'>{0}</text><text hint-wrap='true' hint-maxLines='2'>{1}</text>{2}</binding></visual><audio src='ms-winsoundevent:Notification.IM'/></toast>" -f `$escapedTitle, `$escapedMessage, `$detailXml
+		`$toastXml = "<toast><visual><binding template='ToastGeneric'><text hint-maxLines='1'>{0}</text><text hint-wrap='true' hint-maxLines='1'>{1}</text>{2}</binding></visual><audio src='ms-winsoundevent:Notification.IM'/></toast>" -f `$escapedTitle, `$escapedMessage, `$detailXml
 	}
 	else {
-		`$toastXml = "<toast scenario='{0}'><visual><binding template='ToastGeneric'><text hint-maxLines='1'>{1}</text><text hint-wrap='true' hint-maxLines='2'>{2}</text>{3}</binding></visual><audio silent='true'/><actions><action content='Dismiss' arguments='dismiss'/></actions></toast>" -f `$ToastScenario, `$escapedTitle, `$escapedMessage, `$detailXml
+		`$toastXml = "<toast scenario='{0}'><visual><binding template='ToastGeneric'><text hint-maxLines='1'>{1}</text><text hint-wrap='true' hint-maxLines='1'>{2}</text>{3}</binding></visual><audio silent='true'/><actions><action content='Dismiss' arguments='dismiss'/></actions></toast>" -f `$ToastScenario, `$escapedTitle, `$escapedMessage, `$detailXml
 	}
 
 	`$xmlDoc = New-Object Windows.Data.Xml.Dom.XmlDocument
@@ -1102,7 +1102,7 @@ catch {
   <visual>
 	<binding template='ToastGeneric'>
 	  <text hint-maxLines='1'>$escapedTitle</text>
-	  <text hint-wrap='true' hint-maxLines='2'>$escapedMessage</text>
+	  <text hint-wrap='true' hint-maxLines='1'>$escapedMessage</text>
 $detailXmlElement
 	</binding>
   </visual>
@@ -1119,7 +1119,7 @@ $detailXmlElement
   <visual>
 	<binding template='ToastGeneric'>
 	  <text hint-maxLines='1'>$escapedTitle</text>
-	  <text hint-wrap='true' hint-maxLines='2'>$escapedMessage</text>
+	  <text hint-wrap='true' hint-maxLines='1'>$escapedMessage</text>
 $detailXmlElement
 	</binding>
   </visual>
@@ -1233,14 +1233,23 @@ try {
 		}
 
 		$deadlineText = if ($null -ne $scheduledRebootAt) { $scheduledRebootAt.ToString('yyyy-MM-dd HH:mm') } else { $defaultDeadline.ToString('yyyy-MM-dd HH:mm') }
-		$toastMessage = "$ToastMessagePrefix Uptime: $uptimeSummary. Last boot: $lastBootSummary."
-		$toastDetail = "Reboot scheduled: $deadlineText"
+		$uptimeCompact = '{0}d {1}h' -f [int]$uptime.TotalDays, $uptime.Hours
+		$toastTitleDisplay = if ([string]::IsNullOrWhiteSpace($ToastTitle)) { 'Restart Scheduled' } else { $ToastTitle }
+		if ($toastTitleDisplay.Length -gt 48) {
+			$toastTitleDisplay = 'Restart Scheduled'
+		}
+		$toastPrefixDetail = if ([string]::IsNullOrWhiteSpace($ToastMessagePrefix)) { '' } else { $ToastMessagePrefix.Trim() }
+		if ($toastPrefixDetail.Length -gt 120) {
+			$toastPrefixDetail = $toastPrefixDetail.Substring(0, 117) + '...'
+		}
+		$toastMessage = "Reboot: $deadlineText | Uptime: $uptimeCompact"
+		$toastDetail = $toastPrefixDetail
 
 		if ($DryRun) {
-			Write-Log -Level 'ALERT' -Message "[DRY RUN] Would show toast: $ToastTitle | $toastMessage | $toastDetail"
+			Write-Log -Level 'ALERT' -Message "[DRY RUN] Would show toast: $toastTitleDisplay | $toastMessage | $toastDetail"
 		}
 		else {
-			$toastShown = Show-UptimeToast -Title $ToastTitle -Message $toastMessage -Detail $toastDetail
+			$toastShown = Show-UptimeToast -Title $toastTitleDisplay -Message $toastMessage -Detail $toastDetail
 			if ($toastShown) {
 				Write-Log -Level 'ALERT' -Message 'Threshold exceeded. Toast notification displayed.'
 				Write-Log -Level 'INFO' -Message "[TOAST-MARKER] SUCCESS | Path=$($script:LastToastPath) | Detail=$($script:LastToastReason)"
